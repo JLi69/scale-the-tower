@@ -51,7 +51,7 @@ impl Sprite {
             && self.position.x + self.dimensions.x / 2.0
                 > sprite.position.x - sprite.dimensions.x / 2.0
             && self.position.y + self.dimensions.y / 2.0
-                > sprite.position.y - sprite.dimensions.y / 2.0 
+                > sprite.position.y - sprite.dimensions.y / 2.0
     }
 
     fn uncollide_x(&mut self, sprite: &Sprite) {

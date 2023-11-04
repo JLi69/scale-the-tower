@@ -21,7 +21,7 @@ pub struct Level {
     level_chunks: Vec<u32>,
     level_chunk_vertex_buffers: Vec<u32>,
     level_chunk_texture_coordinates: Vec<u32>,
-    level_chunk_vertex_count: Vec<u32>
+    level_chunk_vertex_count: Vec<u32>,
 }
 
 impl Level {
@@ -30,11 +30,27 @@ impl Level {
             tiles: vec![Tile::Brick; w as usize * h as usize],
             width: w,
             height: h,
-        
-            level_chunks: vec![0; (w as usize / CHUNK_SIZE as usize + 1) * (h as usize / CHUNK_SIZE as usize + 1)],
-            level_chunk_vertex_buffers: vec![0; (w as usize / CHUNK_SIZE as usize + 1) * (h as usize / CHUNK_SIZE as usize + 1)],
-            level_chunk_texture_coordinates: vec![0; (w as usize / CHUNK_SIZE as usize + 1) * (h as usize / CHUNK_SIZE as usize + 1)],
-            level_chunk_vertex_count: vec![0; (w as usize / CHUNK_SIZE as usize + 1) * (h as usize / CHUNK_SIZE as usize + 1)]
+
+            level_chunks: vec![
+                0;
+                (w as usize / CHUNK_SIZE as usize + 1)
+                    * (h as usize / CHUNK_SIZE as usize + 1)
+            ],
+            level_chunk_vertex_buffers: vec![
+                0;
+                (w as usize / CHUNK_SIZE as usize + 1)
+                    * (h as usize / CHUNK_SIZE as usize + 1)
+            ],
+            level_chunk_texture_coordinates: vec![
+                0;
+                (w as usize / CHUNK_SIZE as usize + 1)
+                    * (h as usize / CHUNK_SIZE as usize + 1)
+            ],
+            level_chunk_vertex_count: vec![
+                0;
+                (w as usize / CHUNK_SIZE as usize + 1)
+                    * (h as usize / CHUNK_SIZE as usize + 1)
+            ],
         }
     }
 
@@ -60,11 +76,11 @@ impl Level {
     fn add_vertices(&self, x: u32, y: u32, face: &[f32; 30], vertices: &mut Vec<f32>) {
         for i in 0..6 {
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
-            vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32); 
+            vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
             vertices.push(face[i * VERTEX_LEN + 2]);
-            
+
             match self.get_tile(x, y) {
-                Tile::Brick => { 
+                Tile::Brick => {
                     vertices.push(face[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
                     vertices.push(face[i * VERTEX_LEN + 4]);
                 }
@@ -78,53 +94,173 @@ impl Level {
 
     fn add_tile_vertices(&self, x: u32, y: u32, vertices: &mut Vec<f32>) {
         if self.get_tile(x, y) == Tile::Air {
-            return
+            return;
         }
 
-        let front_face = [ 
-            1.0f32, 1.0, 1.0,   1.0 / TEXTURE_SCALE, 0.0, 
-            -1.0, 1.0, 1.0,     0.0, 0.0, 
-            -1.0, -1.0, 1.0,    0.0, 1.0 / TEXTURE_SCALE, 
-            1.0, 1.0, 1.0,      1.0 / TEXTURE_SCALE, 0.0,
-            -1.0, -1.0, 1.0,    0.0, 1.0 / TEXTURE_SCALE,
-            1.0, -1.0, 1.0,     1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
-        ];  
+        let front_face = [
+            1.0f32,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            -1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            -1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
+        ];
         let top_face = [
-            1.0f32, 1.0, 1.0,      1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE, 
-            1.0, 1.0, -1.0,     1.0 / TEXTURE_SCALE, 0.0, 
-            -1.0, 1.0, 1.0,     0.0, 1.0 / TEXTURE_SCALE,
-            1.0, 1.0, -1.0,     1.0 / TEXTURE_SCALE, 0.0,
-            -1.0, 1.0, -1.0,    0.0, 0.0,
-            -1.0, 1.0, 1.0,     0.0, 1.0 / TEXTURE_SCALE,
+            1.0f32,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
         ];
-        let bottom_face = [ 
-            -1.0f32, -1.0, 1.0,    0.0, 1.0 / TEXTURE_SCALE, 
-            1.0, -1.0, -1.0,    1.0 / TEXTURE_SCALE, 0.0,
-            1.0, -1.0, 1.0,     1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE, 
-            -1.0, -1.0, 1.0,    0.0, 1.0 / TEXTURE_SCALE, 
-            -1.0, -1.0, -1.0,   0.0, 0.0, 
-            1.0, -1.0, -1.0,    1.0 / TEXTURE_SCALE, 0.0, 
+        let bottom_face = [
+            -1.0f32,
+            -1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            -1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            1.0,
+            -1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
+            -1.0,
+            -1.0,
+            1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0,
+            1.0,
+            -1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
         ];
-        let left_face = [ 
-            -1.0f32, 1.0, -1.0,    0.0, 0.0, 
-            -1.0, -1.0, -1.0,   0.0, 1.0 / TEXTURE_SCALE,    
-            -1.0, 1.0, 1.0,     1.0 / TEXTURE_SCALE, 0.0, 
-            -1.0, 1.0, 1.0,     1.0 / TEXTURE_SCALE, 0.0, 
-            -1.0, -1.0, -1.0,   0.0, 1.0 / TEXTURE_SCALE,
-            -1.0, -1.0, 1.0,    1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
+        let left_face = [
+            -1.0f32,
+            1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            -1.0,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            -1.0,
+            -1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
         ];
         let right_face = [
-            1.0f32, -1.0, -1.0,    0.0, 1.0 / TEXTURE_SCALE, 
-            1.0, 1.0, -1.0,     0.0, 0.0, 
-            1.0, 1.0, 1.0,      1.0 / TEXTURE_SCALE, 0.0, 
-            1.0, -1.0, 1.0,     1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE, 
-            1.0, -1.0, -1.0,    0.0, 1.0 / TEXTURE_SCALE,
-            1.0, 1.0, 1.0,      1.0 / TEXTURE_SCALE, 0.0, 
+            1.0f32,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            -1.0,
+            0.0,
+            0.0,
+            1.0,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            1.0,
+            -1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
         ];
 
         self.add_vertices(x, y, &front_face, vertices);
 
-        if self.out_of_bounds(x as i32, y as i32 + 1) || self.get_tile(x, y + 1) == Tile::Air { 
+        if self.out_of_bounds(x as i32, y as i32 + 1) || self.get_tile(x, y + 1) == Tile::Air {
             self.add_vertices(x, y, &top_face, vertices);
         }
 
@@ -136,7 +272,7 @@ impl Level {
             self.add_vertices(x, y, &left_face, vertices);
         }
 
-        if self.out_of_bounds(x as i32 + 1, y as i32) || self.get_tile(x + 1, y) == Tile::Air { 
+        if self.out_of_bounds(x as i32 + 1, y as i32) || self.get_tile(x + 1, y) == Tile::Air {
             self.add_vertices(x, y, &right_face, vertices);
         }
     }
@@ -155,17 +291,24 @@ impl Level {
 
     pub fn build_chunk(&mut self, chunk_x: u32, chunk_y: u32) {
         let vertices = self.get_chunk_vertices(chunk_x, chunk_y);
-        self.level_chunk_vertex_count[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize] =
-            (vertices.len() / VERTEX_LEN) as u32; 
+        self.level_chunk_vertex_count
+            [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize] =
+            (vertices.len() / VERTEX_LEN) as u32;
         unsafe {
-            gl::BindVertexArray(self.level_chunks[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize]);
-            
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.level_chunk_vertex_buffers[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize]);
+            gl::BindVertexArray(
+                self.level_chunks[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+            );
+
+            gl::BindBuffer(
+                gl::ARRAY_BUFFER,
+                self.level_chunk_vertex_buffers
+                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+            );
             gl::BufferData(
-                gl::ARRAY_BUFFER, 
+                gl::ARRAY_BUFFER,
                 (vertices.len() * size_of::<f32>()) as isize,
                 vertices.as_ptr() as *const c_void,
-                gl::STATIC_DRAW
+                gl::STATIC_DRAW,
             );
             gl::VertexAttribPointer(
                 0,
@@ -173,16 +316,20 @@ impl Level {
                 gl::FLOAT,
                 gl::FALSE,
                 (VERTEX_LEN * size_of::<f32>()) as i32,
-                0 as *const c_void
+                0 as *const c_void,
             );
             gl::EnableVertexAttribArray(0);
-            
-            gl::BindBuffer(gl::ARRAY_BUFFER, self.level_chunk_texture_coordinates[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize]);
+
+            gl::BindBuffer(
+                gl::ARRAY_BUFFER,
+                self.level_chunk_texture_coordinates
+                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+            );
             gl::BufferData(
-                gl::ARRAY_BUFFER, 
+                gl::ARRAY_BUFFER,
                 (vertices.len() * size_of::<f32>()) as isize,
                 vertices.as_ptr() as *const c_void,
-                gl::STATIC_DRAW
+                gl::STATIC_DRAW,
             );
             gl::VertexAttribPointer(
                 1,
@@ -190,7 +337,7 @@ impl Level {
                 gl::FLOAT,
                 gl::FALSE,
                 (VERTEX_LEN * size_of::<f32>()) as i32,
-                (3 * size_of::<f32>()) as *const c_void
+                (3 * size_of::<f32>()) as *const c_void,
             );
             gl::EnableVertexAttribArray(1);
         }
@@ -198,9 +345,18 @@ impl Level {
 
     pub fn build_chunks(&mut self) {
         unsafe {
-            gl::GenVertexArrays(self.level_chunks.len() as i32, self.level_chunks.as_mut_ptr());
-            gl::GenBuffers(self.level_chunk_vertex_buffers.len() as i32, self.level_chunk_vertex_buffers.as_mut_ptr());
-            gl::GenBuffers(self.level_chunk_texture_coordinates.len() as i32, self.level_chunk_texture_coordinates.as_mut_ptr());
+            gl::GenVertexArrays(
+                self.level_chunks.len() as i32,
+                self.level_chunks.as_mut_ptr(),
+            );
+            gl::GenBuffers(
+                self.level_chunk_vertex_buffers.len() as i32,
+                self.level_chunk_vertex_buffers.as_mut_ptr(),
+            );
+            gl::GenBuffers(
+                self.level_chunk_texture_coordinates.len() as i32,
+                self.level_chunk_texture_coordinates.as_mut_ptr(),
+            );
         }
 
         for chunk_x in 0..(self.width / CHUNK_SIZE) {
@@ -239,10 +395,10 @@ impl Level {
     }
 
     //Display level
-    pub fn display(&self) { 
+    pub fn display(&self) {
         for i in 0..self.level_chunks.len() {
             unsafe {
-                gl::BindVertexArray(self.level_chunks[i]); 
+                gl::BindVertexArray(self.level_chunks[i]);
                 gl::DrawArrays(gl::TRIANGLES, 0, self.level_chunk_vertex_count[i] as i32);
             }
         }
@@ -253,8 +409,14 @@ impl Drop for Level {
     fn drop(&mut self) {
         unsafe {
             gl::DeleteVertexArrays(self.level_chunks.len() as i32, self.level_chunks.as_ptr());
-            gl::DeleteBuffers(self.level_chunk_vertex_buffers.len() as i32, self.level_chunk_vertex_buffers.as_ptr());
-            gl::DeleteBuffers(self.level_chunk_texture_coordinates.len() as i32, self.level_chunk_texture_coordinates.as_ptr());
+            gl::DeleteBuffers(
+                self.level_chunk_vertex_buffers.len() as i32,
+                self.level_chunk_vertex_buffers.as_ptr(),
+            );
+            gl::DeleteBuffers(
+                self.level_chunk_texture_coordinates.len() as i32,
+                self.level_chunk_texture_coordinates.as_ptr(),
+            );
         }
     }
 }

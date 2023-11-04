@@ -147,15 +147,15 @@ impl ShaderProgram {
         let name_cstr_raw = CString::new(uniform_name);
         unsafe {
             match name_cstr_raw {
-                Ok(s) => { 
+                Ok(s) => {
                     let location = gl::GetUniformLocation(self.program_id, s.as_ptr());
-                    
+
                     if location < 0 {
-                        return None 
+                        return None;
                     }
 
-                    Some(location) 
-                },
+                    Some(location)
+                }
                 Err(msg) => {
                     eprintln!("{msg}");
                     None

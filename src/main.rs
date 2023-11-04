@@ -92,15 +92,15 @@ fn main() -> Result<(), String> {
 
     let _cube_vao = gfx::VertexArrayObject::create_cube();
     let rect_vao = gfx::VertexArrayObject::create_rectangle();
- 
+
     let sprite_shader = shader::program_from_vert_and_frag(
         "assets/shaders/sprite_vert.glsl",
-        "assets/shaders/sprite_frag.glsl"
+        "assets/shaders/sprite_frag.glsl",
     );
 
     let level_shader = shader::program_from_vert_and_frag(
         "assets/shaders/level_vert.glsl",
-        "assets/shaders/level_frag.glsl"
+        "assets/shaders/level_frag.glsl",
     );
 
     //Textures
@@ -140,7 +140,7 @@ fn main() -> Result<(), String> {
             -state.player.position.x,
             -state.player.position.y,
             level::LEVEL_Z,
-        )); 
+        ));
 
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -155,7 +155,7 @@ fn main() -> Result<(), String> {
         let transform_matrix = Matrix4::from_scale(0.5);
         level_shader.uniform_matrix4f("uTransform", &transform_matrix);
         level.display();
-        
+
         sprite_shader.use_program();
         sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
         sprite_shader.uniform_matrix4f("uView", &view_matrix);

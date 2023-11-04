@@ -1,11 +1,11 @@
 extern crate gl;
 use gl::types::*;
 
+use cgmath::{Matrix, Matrix4};
 use std::ffi::CString;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use cgmath::{Matrix4, Matrix};
 use std::str;
 
 fn read_shader_src_file(path: &str) -> String {
@@ -158,20 +158,36 @@ impl ShaderProgram {
 
     fn uniform<F: Fn(i32)>(&self, uniform_name: &str, uniform_function: F) {
         match self.get_uniform_location(uniform_name) {
-            Some(location) => { 
+            Some(location) => {
                 uniform_function(location);
             }
-            None => { 
-                eprintln!("Uniform not found: {uniform_name}") 
+            None => {
+                eprintln!("Uniform not found: {uniform_name}")
             }
         }
     }
 
     pub fn uniform_vec4f(&self, uniform_name: &str, x: f32, y: f32, z: f32, w: f32) {
-        self.uniform(uniform_name, |location| unsafe { gl::Uniform4f(location, x, y, z, w) });
+        self.uniform(uniform_name, |location| unsafe {
+            gl::Uniform4f(location, x, y, z, w);
+        });
+    }
+
+    pub fn uniform_vec2f(&self, uniform_name: &str, x: f32, y: f32) {
+        self.uniform(uniform_name, |location| unsafe {
+            gl::Uniform2f(location, x, y);
+        })
     }
 
     pub fn uniform_matrix4f(&self, uniform_name: &str, mat: &Matrix4<f32>) {
-        self.uniform(uniform_name, |location| unsafe { gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.as_ptr()) })
+        self.uniform(uniform_name, |location| unsafe {
+            gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.as_ptr());
+        })
+    }
+
+    pub fn uniform_float(&self, uniform_name: &str, v: f32) {
+        self.uniform(uniform_name, |location| unsafe {
+            gl::Uniform1f(location, v);
+        })
     }
 }

@@ -1,5 +1,5 @@
-use cgmath::{Vector2, vec2};
-use crate::level::{Tile, Level};
+use crate::level::{Level, Tile};
+use cgmath::{vec2, Vector2};
 
 pub const PLAYER_SPEED: f32 = 3.0;
 pub const PLAYER_JUMP_SPEED: f32 = 9.0;
@@ -9,7 +9,7 @@ pub struct Sprite {
     pub position: Vector2<f32>,
     pub dimensions: Vector2<f32>,
     pub velocity: Vector2<f32>,
-    pub falling: bool
+    pub falling: bool,
 }
 
 impl Sprite {
@@ -18,31 +18,33 @@ impl Sprite {
             position: vec2(x, y),
             dimensions: vec2(w, h),
             velocity: vec2(0.0, 0.0),
-            falling: false
+            falling: false,
         }
     }
 
     pub fn intersecting(&self, sprite: &Sprite) -> bool {
-        if self.position.x - self.dimensions.x / 2.0 < sprite.position.x + sprite.dimensions.x / 2.0 &&
-           self.position.y - self.dimensions.y / 2.0 < sprite.position.y + sprite.dimensions.y / 2.0 &&
-           self.position.x + self.dimensions.x / 2.0 > sprite.position.x - sprite.dimensions.x / 2.0 &&
-           self.position.y + self.dimensions.y / 2.0 > sprite.position.y - sprite.dimensions.y / 2.0 {
-            true 
+        if self.position.x - self.dimensions.x / 2.0 < sprite.position.x + sprite.dimensions.x / 2.0
+            && self.position.y - self.dimensions.y / 2.0
+                < sprite.position.y + sprite.dimensions.y / 2.0
+            && self.position.x + self.dimensions.x / 2.0
+                > sprite.position.x - sprite.dimensions.x / 2.0
+            && self.position.y + self.dimensions.y / 2.0
+                > sprite.position.y - sprite.dimensions.y / 2.0
+        {
+            true
         } else {
-            false 
+            false
         }
     }
 
     fn uncollide_x(&mut self, sprite: &Sprite) {
         if self.intersecting(&sprite) {
             if self.position.x > sprite.position.x {
-                self.position.x = sprite.position.x + 
-                                  sprite.dimensions.x / 2.0 +
-                                  self.dimensions.x / 2.0;
+                self.position.x =
+                    sprite.position.x + sprite.dimensions.x / 2.0 + self.dimensions.x / 2.0;
             } else if self.position.x < sprite.position.x {
-                self.position.x = sprite.position.x - 
-                                  sprite.dimensions.x / 2.0 -
-                                  self.dimensions.x / 2.0;
+                self.position.x =
+                    sprite.position.x - sprite.dimensions.x / 2.0 - self.dimensions.x / 2.0;
             }
         }
     }
@@ -50,18 +52,16 @@ impl Sprite {
     fn uncollide_y(&mut self, sprite: &Sprite) {
         if self.intersecting(&sprite) {
             if self.position.y > sprite.position.y {
-                self.position.y = sprite.position.y + 
-                                  sprite.dimensions.y / 2.0 +
-                                  self.dimensions.y / 2.0;
+                self.position.y =
+                    sprite.position.y + sprite.dimensions.y / 2.0 + self.dimensions.y / 2.0;
                 self.falling = false;
             } else if self.position.y < sprite.position.y {
-                self.position.y = sprite.position.y - 
-                                  sprite.dimensions.y / 2.0 -
-                                  self.dimensions.y / 2.0;
+                self.position.y =
+                    sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0;
                 self.falling = true;
                 self.velocity.y = 0.0;
             }
-        } 
+        }
     }
 
     pub fn update(&mut self, dt: f32, level: &Level) {
@@ -77,7 +77,7 @@ impl Sprite {
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
                 if level.out_of_bounds(x, y) {
-                    continue; 
+                    continue;
                 }
 
                 if level.get_tile(x as u32, y as u32) != Tile::Air {
@@ -86,13 +86,13 @@ impl Sprite {
                 }
             }
         }
-        
+
         self.position.y += self.velocity.y / 2.0 * dt;
         if self.falling {
             self.velocity.y -= GRAVITY * dt;
         }
         self.position.y += self.velocity.y / 2.0 * dt;
-        
+
         //Handle collision
         let top_left = vec2(self.position.x, self.position.y)
             - vec2(self.dimensions.x / 2.0 + 1.0, self.dimensions.y / 2.0 + 1.0);
@@ -105,14 +105,14 @@ impl Sprite {
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
                 if level.out_of_bounds(x, y) {
-                    continue; 
+                    continue;
                 }
 
                 if level.get_tile(x as u32, y as u32) != Tile::Air {
-                    let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0); 
-                    self.uncollide_y(&hitbox); 
+                    let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                    self.uncollide_y(&hitbox);
                 }
             }
-        } 
+        }
     }
 }

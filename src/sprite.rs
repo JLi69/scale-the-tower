@@ -1,10 +1,15 @@
 use crate::level::{Level, Tile};
 use cgmath::{vec2, Vector2};
 
+//Speed the player walks at
 pub const PLAYER_SPEED: f32 = 3.0;
+//Jump speed of the player
 pub const PLAYER_JUMP_SPEED: f32 = 9.0;
+//Force of gravity on all sprites
 pub const GRAVITY: f32 = 16.0;
 
+//Sprite animation state
+//Determines what to display when drawing the sprite onto the screen
 enum AnimationState {
     Idle,
     Walking,
@@ -15,12 +20,15 @@ pub struct Sprite {
     pub position: Vector2<f32>,
     pub dimensions: Vector2<f32>,
     pub velocity: Vector2<f32>,
+    //Whether the sprite is falling (not supported by any tiles)
     falling: bool,
     pub flipped: bool,
 
     //In seconds
     animation_timer: f32,
     animation_duration: f32,
+    //Location of the starting and ending frame of the animation
+    //Assume that the animation frames are all on the same row of the texture
     start_frame: u8,
     end_frame: u8,
 
@@ -28,6 +36,7 @@ pub struct Sprite {
 }
 
 impl Sprite {
+    //Creates a new sprite
     pub fn new(x: f32, y: f32, w: f32, h: f32) -> Self {
         Self {
             position: vec2(x, y),
@@ -44,6 +53,7 @@ impl Sprite {
         }
     }
 
+    //Collision detection
     pub fn intersecting(&self, sprite: &Sprite) -> bool {
         self.position.x - self.dimensions.x / 2.0 < sprite.position.x + sprite.dimensions.x / 2.0
             && self.position.y - self.dimensions.y / 2.0
@@ -54,6 +64,7 @@ impl Sprite {
                 > sprite.position.y - sprite.dimensions.y / 2.0
     }
 
+    //Uncollide the sprite with another sprite in the x axis
     fn uncollide_x(&mut self, sprite: &Sprite) {
         if self.intersecting(sprite) {
             if self.position.x > sprite.position.x {
@@ -66,28 +77,39 @@ impl Sprite {
         }
     }
 
+    //Uncollide the sprite with another sprite in the y axis
     fn uncollide_y(&mut self, sprite: &Sprite) {
         if self.intersecting(sprite) {
             if self.position.y > sprite.position.y {
                 self.position.y =
                     sprite.position.y + sprite.dimensions.y / 2.0 + self.dimensions.y / 2.0;
+                //If we are supported by a tile then stop falling
                 self.falling = false;
             } else if self.position.y < sprite.position.y {
                 self.position.y =
                     sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0;
+                //We hit the bottom of a tile, start falling again
                 self.falling = true;
+                //Set y velocity to 0 so we don't "stick" to the tile if the
+                //player decides to hold down the jump key
                 self.velocity.y = 0.0;
             }
         }
     }
 
+    //NOTE: collision detection isn't perfect, if the sprite is moving
+    //too fast or the framerate drops too low, then the sprite may end
+    //up clipping through tiles
     pub fn update(&mut self, dt: f32, level: &Level) {
+        //Determine if to display whether the sprite is flipped based on
+        //the x velocity of the sprite and what direction the sprite is heading
         if self.velocity.x < 0.0 {
             self.flipped = true;
         } else if self.velocity.x > 0.0 {
             self.flipped = false;
         }
 
+        //Update x
         self.position.x += self.velocity.x * dt;
         //Handle collision
         let top_left = vec2(self.position.x, self.position.y)
@@ -97,6 +119,8 @@ impl Sprite {
         let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
         let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
+        //Scan the level for tiles the sprite might have collided with
+        //and then uncollide the sprite from the tiles
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
                 if level.out_of_bounds(x, y) {
@@ -110,7 +134,9 @@ impl Sprite {
             }
         }
 
+        //Update y
         self.position.y += self.velocity.y / 2.0 * dt;
+        //Accelerate due to gravity
         if self.falling {
             self.velocity.y -= GRAVITY * dt;
         }
@@ -125,6 +151,8 @@ impl Sprite {
         let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
         self.falling = true;
+        
+        //Uncollide from any tiles and also determine if the sprite is falling
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
                 if level.out_of_bounds(x, y) {
@@ -139,6 +167,7 @@ impl Sprite {
         }
     }
 
+    //Updates the animation timer
     pub fn update_animation_frame(&mut self, dt: f32) {
         if self.animation_duration <= 0.0 {
             return;
@@ -149,12 +178,15 @@ impl Sprite {
             (self.animation_timer / self.animation_duration).floor() * self.animation_duration;
     }
 
+    //Returns the current frame of the animation (returns a u8, we can therefore
+    //have up to 256 different frames of animation)
     pub fn current_frame(&self) -> u8 {
         self.start_frame
             + ((self.end_frame - self.start_frame + 1) as f32 * self.animation_timer
                 / self.animation_duration) as u8
     }
 
+    //Updates the animation state of the player based on various conditions 
     pub fn update_animation_state(&mut self) {
         if self.falling {
             self.animation_state = AnimationState::Jumping
@@ -183,6 +215,7 @@ impl Sprite {
         }
     }
 
+    //Returns if the sprite is falling
     pub fn falling(&self) -> bool {
         self.falling
     }

@@ -14,15 +14,19 @@ use level::Level;
 use sprite::Sprite;
 use std::{sync::mpsc::Receiver, time::Instant};
 
+//Structure to store the current state of the application and allow us
+//to pass it to different functions so that it can be modified
 struct State {
     perspective: Matrix4<f32>,
     player: Sprite,
 }
 
+//Handle window resizing
 fn handle_window_resize(w: i32, h: i32, state: &mut State) {
     unsafe {
         gl::Viewport(0, 0, w, h);
     }
+    //Update the perspective matrix
     state.perspective = cgmath::perspective(cgmath::Deg(75.0), w as f32 / h as f32, 0.1, 1000.0)
 }
 
@@ -56,9 +60,11 @@ fn process_events(
 ) {
     for (_, event) in glfw::flush_messages(events) {
         match event {
+            //Window resize
             glfw::WindowEvent::FramebufferSize(width, height) => {
                 handle_window_resize(width, height, state);
             }
+            //Key input
             glfw::WindowEvent::Key(key, scancode, action, modifiers) => {
                 handle_key_input(key, scancode, action, modifiers, state);
             }
@@ -93,6 +99,7 @@ fn main() -> Result<(), String> {
     let _cube_vao = gfx::VertexArrayObject::create_cube();
     let rect_vao = gfx::VertexArrayObject::create_rectangle();
 
+    //Load Shaders
     let sprite_shader = shader::program_from_vert_and_frag(
         "assets/shaders/sprite_vert.glsl",
         "assets/shaders/sprite_frag.glsl",
@@ -103,7 +110,7 @@ fn main() -> Result<(), String> {
         "assets/shaders/level_frag.glsl",
     );
 
-    //Textures
+    //Load Textures
     let sprite_textures = match gfx::Texture::load_from_file("assets/textures/sprites.png") {
         Ok(texture) => texture,
         Err(msg) => {
@@ -120,6 +127,7 @@ fn main() -> Result<(), String> {
         }
     };
 
+    //Initialize the current state of the application
     let mut state = State {
         perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
         player: Sprite::new(8.0, 8.0, 0.8, 1.0),
@@ -156,12 +164,13 @@ fn main() -> Result<(), String> {
         level_shader.uniform_matrix4f("uTransform", &transform_matrix);
         level.display();
 
+        //Display the player sprite 
+        rect_vao.bind();
         sprite_shader.use_program();
         sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
         sprite_shader.uniform_matrix4f("uView", &view_matrix);
         sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
         sprite_shader.uniform_bool("uFlipped", state.player.flipped);
-        rect_vao.bind();
         sprite_textures.bind();
         let transform_matrix = Matrix4::from_translation(cgmath::vec3(
             state.player.position.x,
@@ -185,6 +194,7 @@ fn main() -> Result<(), String> {
         window.swap_buffers();
         glfw.poll_events();
 
+        //Calculate the amount of time passed in a single frame
         let end = Instant::now();
         dt = end.duration_since(start).as_secs_f32();
     }

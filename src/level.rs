@@ -1,9 +1,18 @@
 use std::mem::size_of;
 use std::os::raw::c_void;
 
+//The distance of the level from the camera
 pub const LEVEL_Z: f32 = -8.0;
+//There will be a maximum of TEXTURE_SCALE * TEXTURE_SCALE 
+//different tile textures that will be stored in a single texture
 const TEXTURE_SCALE: f32 = 8.0;
+//Size of a "chunk" of tiles in the level
+//This is the size of a square of tiles that will
+//be grouped together into a single mesh so that
+//we can reduce the number of OpenGL calls made
+//when drawing the level
 const CHUNK_SIZE: u32 = 16;
+//Number of f32 elements in a vertex
 const VERTEX_LEN: usize = 5;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -26,6 +35,8 @@ pub struct Level {
 
 impl Level {
     pub fn new(w: u32, h: u32) -> Self {
+        //Creates a level filled with bricks that can 
+        //be used to generate a more complex level
         Self {
             tiles: vec![Tile::Brick; w as usize * h as usize],
             width: w,
@@ -33,23 +44,19 @@ impl Level {
 
             level_chunks: vec![
                 0;
-                (w as usize / CHUNK_SIZE as usize + 1)
-                    * (h as usize / CHUNK_SIZE as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_vertex_buffers: vec![
                 0;
-                (w as usize / CHUNK_SIZE as usize + 1)
-                    * (h as usize / CHUNK_SIZE as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_texture_coordinates: vec![
                 0;
-                (w as usize / CHUNK_SIZE as usize + 1)
-                    * (h as usize / CHUNK_SIZE as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_vertex_count: vec![
                 0;
-                (w as usize / CHUNK_SIZE as usize + 1)
-                    * (h as usize / CHUNK_SIZE as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
             ],
         }
     }
@@ -73,12 +80,16 @@ impl Level {
         test_level
     }
 
+    //Adds the vertices of a single face to the vertex vector
     fn add_vertices(&self, x: u32, y: u32, face: &[f32; 30], vertices: &mut Vec<f32>) {
+        //6 vertices per face
         for i in 0..6 {
+            //Add the vertex position (x, y, z)
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
             vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
             vertices.push(face[i * VERTEX_LEN + 2]);
 
+            //Add the texture coordinates
             match self.get_tile(x, y) {
                 Tile::Brick => {
                     vertices.push(face[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
@@ -93,10 +104,15 @@ impl Level {
     }
 
     fn add_tile_vertices(&self, x: u32, y: u32, vertices: &mut Vec<f32>) {
+        //In the case where the tile is air, ignore it and simply return
         if self.get_tile(x, y) == Tile::Air {
             return;
         }
 
+        //The faces of each tile,
+        //each vertex of the tile consists of 5 f32 values:
+        //vertex position: (x, y, z) texture coordinates: (tx, ty)
+        //Each array is structured [ x, y, z, tx, ty, ... ]
         let front_face = [
             1.0f32,
             1.0,
@@ -258,8 +274,15 @@ impl Level {
             0.0,
         ];
 
+        //Add the front face vertices, these are never covered by another
+        //tile so we add then always. We never see the back face so there
+        //is no point in adding that to the mesh
         self.add_vertices(x, y, &front_face, vertices);
 
+        //Check if the other faces are covered so that we don't add more
+        //vertices than we need to. The out of bounds check is to make sure
+        //that x and y don't underflow when subtracting 1 from them and avoid
+        //causing a crash in debug mode
         if self.out_of_bounds(x as i32, y as i32 + 1) || self.get_tile(x, y + 1) == Tile::Air {
             self.add_vertices(x, y, &top_face, vertices);
         }
@@ -277,6 +300,7 @@ impl Level {
         }
     }
 
+    //Builds a vector of vertices for a single chunk
     pub fn get_chunk_vertices(&self, chunk_x: u32, chunk_y: u32) -> Vec<f32> {
         let mut vertices = vec![];
 
@@ -290,7 +314,12 @@ impl Level {
     }
 
     pub fn build_chunk(&mut self, chunk_x: u32, chunk_y: u32) {
+        //Vertices is a vector of f32 values that represent the vertices of
+        //the chunk of tiles
         let vertices = self.get_chunk_vertices(chunk_x, chunk_y);
+        //Number of vertices is equal to vertices.len() / VERTEX_LEN,
+        //this is stored so that we know how many vertices to draw onto the
+        //screen when we need to draw the chunk
         self.level_chunk_vertex_count
             [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize] =
             (vertices.len() / VERTEX_LEN) as u32;
@@ -343,7 +372,10 @@ impl Level {
         }
     }
 
+    //Builds the chunk meshes for each chunk of tiles,
+    //this is done to reduce OpenGL calls and reduce CPU usage
     pub fn build_chunks(&mut self) {
+        //Generate vertex arrays and vertex buffers
         unsafe {
             gl::GenVertexArrays(
                 self.level_chunks.len() as i32,
@@ -366,11 +398,15 @@ impl Level {
         }
     }
 
+    //Returns true if the integer coordinates are outside of the level
+    //(level coordinates range from 0 to width - 1 for x and
+    //range from 0 to height - 1 for y)
     pub fn out_of_bounds(&self, x: i32, y: i32) -> bool {
         x < 0 || y < 0 || x >= self.width as i32 || y >= self.height as i32
     }
 
     pub fn get_tile(&self, x: u32, y: u32) -> Tile {
+        //Out of bounds, return Air as the default
         if x >= self.width || y >= self.height {
             return Tile::Air;
         }
@@ -379,6 +415,7 @@ impl Level {
     }
 
     pub fn set_tile(&mut self, x: u32, y: u32, tile: Tile) {
+        //Out of bounds, ignore
         if x >= self.width || y >= self.height {
             return;
         }
@@ -386,15 +423,7 @@ impl Level {
         self.tiles[((self.width * y) + x) as usize] = tile;
     }
 
-    pub fn w(&self) -> u32 {
-        self.width
-    }
-
-    pub fn h(&self) -> u32 {
-        self.height
-    }
-
-    //Display level
+    //Display the level
     pub fn display(&self) {
         for i in 0..self.level_chunks.len() {
             unsafe {
@@ -407,6 +436,8 @@ impl Level {
 
 impl Drop for Level {
     fn drop(&mut self) {
+        //When the level gets dropped, make sure to delete all of the
+        //vertex array objects and all of the vertex buffers
         unsafe {
             gl::DeleteVertexArrays(self.level_chunks.len() as i32, self.level_chunks.as_ptr());
             gl::DeleteBuffers(

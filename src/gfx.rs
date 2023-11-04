@@ -7,16 +7,19 @@ pub struct Texture {
 }
 
 impl Texture {
+    //Creates a blank texture with id 0
     pub fn new() -> Self {
         Self { id: 0 }
     }
 
-    //Attempt to load texture from file
+    //Attempt to load texture from a PNG file 
+    //(assume that the PNG file has its colors encoded in RGBA)
     pub fn load_from_file(path: &str) -> Result<Self, String> {
         let file_res = File::open(path);
 
         match file_res {
             Ok(file) => {
+                //Attempt to read from the texture file
                 let decoder = png::Decoder::new(file);
                 let mut reader = decoder.read_info().map_err(|e| e.to_string())?;
                 let mut buf = vec![0u8; reader.output_buffer_size()];
@@ -56,6 +59,14 @@ impl Texture {
     pub fn bind(&self) {
         unsafe {
             gl::BindTexture(gl::TEXTURE_2D, self.id);
+        }
+    }
+}
+
+impl Drop for Texture {
+    fn drop(&mut self) {
+        unsafe {
+            gl::DeleteTextures(1, &self.id); 
         }
     }
 }
@@ -128,6 +139,7 @@ impl VertexArrayObject {
         }
     }
 
+    //Textured cube
     pub fn create_cube() -> Self {
         let mut vao = 0;
         let mut buffers = vec![0, 0];
@@ -232,6 +244,7 @@ impl Drop for VertexArrayObject {
     }
 }
 
+//Outputs any OpenGL errors that might have occured - used for debugging
 pub fn output_gl_errors() {
     unsafe {
         let mut gl_err = gl::GetError();

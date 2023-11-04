@@ -88,7 +88,9 @@ pub struct ShaderProgram {
     program_id: u32,
 }
 
+#[allow(dead_code)]
 impl ShaderProgram {
+    //Creates an empty shader program
     pub fn create_program() -> Self {
         unsafe {
             Self {
@@ -97,6 +99,7 @@ impl ShaderProgram {
         }
     }
 
+    //Add and link shaders together to create a shader program
     pub fn add_shaders(&self, shader_ids: &[u32]) {
         unsafe {
             for shader in shader_ids {
@@ -143,6 +146,9 @@ impl ShaderProgram {
         }
     }
 
+    //Returns the location of a uniform
+    //If the uniform can't be found (or uniform_name is an invalid c string)
+    //then None is returned, otherwise Some(location) is given
     pub fn get_uniform_location(&self, uniform_name: &str) -> Option<i32> {
         let name_cstr_raw = CString::new(uniform_name);
         unsafe {
@@ -164,6 +170,7 @@ impl ShaderProgram {
         }
     }
 
+    //Sends a uniform to a location based
     fn uniform<F: Fn(i32)>(&self, uniform_name: &str, uniform_function: F) {
         match self.get_uniform_location(uniform_name) {
             Some(location) => {
@@ -175,30 +182,35 @@ impl ShaderProgram {
         }
     }
 
+    //Send a 4 dimensional vector to the shader
     pub fn uniform_vec4f(&self, uniform_name: &str, x: f32, y: f32, z: f32, w: f32) {
         self.uniform(uniform_name, |location| unsafe {
             gl::Uniform4f(location, x, y, z, w);
         });
     }
 
+    //Send a 2 dimensional vector to the shader
     pub fn uniform_vec2f(&self, uniform_name: &str, x: f32, y: f32) {
         self.uniform(uniform_name, |location| unsafe {
             gl::Uniform2f(location, x, y);
         })
     }
 
+    //Send a 4 x 4 matrix to the shader
     pub fn uniform_matrix4f(&self, uniform_name: &str, mat: &Matrix4<f32>) {
         self.uniform(uniform_name, |location| unsafe {
             gl::UniformMatrix4fv(location, 1, gl::FALSE, mat.as_ptr());
         })
     }
 
+    //Send a floating point value to the shader
     pub fn uniform_float(&self, uniform_name: &str, v: f32) {
         self.uniform(uniform_name, |location| unsafe {
             gl::Uniform1f(location, v);
         })
     }
 
+    //Send a boolean to the shader
     pub fn uniform_bool(&self, uniform_name: &str, b: bool) {
         self.uniform(uniform_name, |location| unsafe {
             if b {
@@ -210,6 +222,7 @@ impl ShaderProgram {
     }
 }
 
+//Creates a shader from a vertex shader and fragment shader given by a path
 pub fn program_from_vert_and_frag(vert_path: &str, frag_path: &str) -> ShaderProgram {
     let shaders = [
         create_and_compile_shader(vert_path, gl::VERTEX_SHADER),

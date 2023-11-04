@@ -33,7 +33,7 @@ fn handle_key_input(
     state: &mut State,
 ) {
     if action == glfw::Action::Press {
-        if key == glfw::Key::Up && !state.player.falling {
+        if key == glfw::Key::Up && !state.player.falling() {
             state.player.velocity.y = sprite::PLAYER_JUMP_SPEED;
         } else if key == glfw::Key::Left {
             state.player.velocity.x = -sprite::PLAYER_SPEED;
@@ -124,6 +124,8 @@ fn main() -> Result<(), String> {
 
     let level = Level::test_level();
 
+    state.player.update_animation_state();
+
     let mut dt = 0.0f32;
     while !window.should_close() {
         let start = Instant::now();
@@ -146,9 +148,11 @@ fn main() -> Result<(), String> {
         }
 
         //Display level
+        sprite_shader.uniform_bool("uFlipped", false);
         tile_textures.bind();
         level.display(&sprite_shader, &cube_vao);
 
+        sprite_shader.uniform_bool("uFlipped", state.player.flipped);
         rect_vao.bind();
         sprite_textures.bind();
         let transform_matrix = Matrix4::from_translation(cgmath::vec3(
@@ -157,11 +161,17 @@ fn main() -> Result<(), String> {
             0.0,
         )) * Matrix4::from_scale(0.5);
         sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);
-        sprite_shader.uniform_vec2f("uTexOffset", 0.0, 0.0);
+        sprite_shader.uniform_vec2f(
+            "uTexOffset",
+            1.0 / 8.0 * state.player.current_frame() as f32,
+            0.0,
+        );
         rect_vao.draw_arrays();
 
         //Update the player
         state.player.update(dt, &level);
+        state.player.update_animation_frame(dt);
+        state.player.update_animation_state();
 
         gfx::output_gl_errors();
         window.swap_buffers();

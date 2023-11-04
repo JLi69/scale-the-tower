@@ -190,4 +190,14 @@ impl ShaderProgram {
             gl::Uniform1f(location, v);
         })
     }
+
+    pub fn uniform_bool(&self, uniform_name: &str, b: bool) {
+        self.uniform(uniform_name, |location| unsafe {
+            if b {
+                gl::Uniform1i(location, gl::TRUE as i32);
+            } else if !b {
+                gl::Uniform1i(location, gl::FALSE as i32);
+            }
+        })
+    }
 }

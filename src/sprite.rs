@@ -45,22 +45,17 @@ impl Sprite {
     }
 
     pub fn intersecting(&self, sprite: &Sprite) -> bool {
-        if self.position.x - self.dimensions.x / 2.0 < sprite.position.x + sprite.dimensions.x / 2.0
+        self.position.x - self.dimensions.x / 2.0 < sprite.position.x + sprite.dimensions.x / 2.0
             && self.position.y - self.dimensions.y / 2.0
                 < sprite.position.y + sprite.dimensions.y / 2.0
             && self.position.x + self.dimensions.x / 2.0
                 > sprite.position.x - sprite.dimensions.x / 2.0
             && self.position.y + self.dimensions.y / 2.0
-                > sprite.position.y - sprite.dimensions.y / 2.0
-        {
-            true
-        } else {
-            false
-        }
+                > sprite.position.y - sprite.dimensions.y / 2.0 
     }
 
     fn uncollide_x(&mut self, sprite: &Sprite) {
-        if self.intersecting(&sprite) {
+        if self.intersecting(sprite) {
             if self.position.x > sprite.position.x {
                 self.position.x =
                     sprite.position.x + sprite.dimensions.x / 2.0 + self.dimensions.x / 2.0;
@@ -72,7 +67,7 @@ impl Sprite {
     }
 
     fn uncollide_y(&mut self, sprite: &Sprite) {
-        if self.intersecting(&sprite) {
+        if self.intersecting(sprite) {
             if self.position.y > sprite.position.y {
                 self.position.y =
                     sprite.position.y + sprite.dimensions.y / 2.0 + self.dimensions.y / 2.0;

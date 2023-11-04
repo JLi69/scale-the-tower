@@ -147,7 +147,15 @@ impl ShaderProgram {
         let name_cstr_raw = CString::new(uniform_name);
         unsafe {
             match name_cstr_raw {
-                Ok(s) => Some(gl::GetUniformLocation(self.program_id, s.as_ptr())),
+                Ok(s) => { 
+                    let location = gl::GetUniformLocation(self.program_id, s.as_ptr());
+                    
+                    if location < 0 {
+                        return None 
+                    }
+
+                    Some(location) 
+                },
                 Err(msg) => {
                     eprintln!("{msg}");
                     None
@@ -200,4 +208,14 @@ impl ShaderProgram {
             }
         })
     }
+}
+
+pub fn program_from_vert_and_frag(vert_path: &str, frag_path: &str) -> ShaderProgram {
+    let shaders = [
+        create_and_compile_shader(vert_path, gl::VERTEX_SHADER),
+        create_and_compile_shader(frag_path, gl::FRAGMENT_SHADER),
+    ];
+    let program = ShaderProgram::create_program();
+    program.add_shaders(&shaders);
+    program
 }

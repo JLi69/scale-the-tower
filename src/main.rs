@@ -1,3 +1,5 @@
+#![allow(clippy::zero_ptr)]
+
 extern crate gl;
 extern crate glfw;
 
@@ -41,9 +43,7 @@ fn handle_key_input(
             state.player.velocity.x = sprite::PLAYER_SPEED;
         }
     } else if action == glfw::Action::Release {
-        if key == glfw::Key::Left {
-            state.player.velocity.x = 0.0;
-        } else if key == glfw::Key::Right {
+        if key == glfw::Key::Left || key == glfw::Key::Right {
             state.player.velocity.x = 0.0;
         }
     }
@@ -90,15 +90,18 @@ fn main() -> Result<(), String> {
         gl::Enable(gl::CULL_FACE);
     }
 
-    let cube_vao = gfx::VertexArrayObject::create_cube();
+    let _cube_vao = gfx::VertexArrayObject::create_cube();
     let rect_vao = gfx::VertexArrayObject::create_rectangle();
+ 
+    let sprite_shader = shader::program_from_vert_and_frag(
+        "assets/shaders/sprite_vert.glsl",
+        "assets/shaders/sprite_frag.glsl"
+    );
 
-    let sprite_shaders = [
-        shader::create_and_compile_shader("assets/shaders/sprite_vert.glsl", gl::VERTEX_SHADER),
-        shader::create_and_compile_shader("assets/shaders/sprite_frag.glsl", gl::FRAGMENT_SHADER),
-    ];
-    let sprite_shader = shader::ShaderProgram::create_program();
-    sprite_shader.add_shaders(&sprite_shaders);
+    let level_shader = shader::program_from_vert_and_frag(
+        "assets/shaders/level_vert.glsl",
+        "assets/shaders/level_frag.glsl"
+    );
 
     //Textures
     let sprite_textures = match gfx::Texture::load_from_file("assets/textures/sprites.png") {
@@ -119,10 +122,11 @@ fn main() -> Result<(), String> {
 
     let mut state = State {
         perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
-        player: Sprite::new(8.0, 8.0, 1.0, 1.0),
+        player: Sprite::new(8.0, 8.0, 0.8, 1.0),
     };
 
-    let level = Level::test_level();
+    let mut level = Level::test_level();
+    level.build_chunks();
 
     state.player.update_animation_state();
 
@@ -136,11 +140,7 @@ fn main() -> Result<(), String> {
             -state.player.position.x,
             -state.player.position.y,
             level::LEVEL_Z,
-        ));
-        sprite_shader.use_program();
-        sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
-        sprite_shader.uniform_matrix4f("uView", &view_matrix);
-        sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
+        )); 
 
         unsafe {
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -148,10 +148,18 @@ fn main() -> Result<(), String> {
         }
 
         //Display level
-        sprite_shader.uniform_bool("uFlipped", false);
         tile_textures.bind();
-        level.display(&sprite_shader, &cube_vao);
-
+        level_shader.use_program();
+        level_shader.uniform_matrix4f("uPerspective", &state.perspective);
+        level_shader.uniform_matrix4f("uView", &view_matrix);
+        let transform_matrix = Matrix4::from_scale(0.5);
+        level_shader.uniform_matrix4f("uTransform", &transform_matrix);
+        level.display();
+        
+        sprite_shader.use_program();
+        sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
+        sprite_shader.uniform_matrix4f("uView", &view_matrix);
+        sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
         sprite_shader.uniform_bool("uFlipped", state.player.flipped);
         rect_vao.bind();
         sprite_textures.bind();

@@ -13,6 +13,7 @@ use glfw::Context;
 use level::Level;
 use sprite::Sprite;
 use std::{sync::mpsc::Receiver, time::Instant};
+use level::room_template;
 
 //Structure to store the current state of the application and allow us
 //to pass it to different functions so that it can be modified
@@ -88,6 +89,9 @@ fn main() -> Result<(), String> {
     //Attempt to load OpenGL functions
     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
 
+    //Attempt to load room templates
+    let room_templates = room_template::load_room_templates();
+
     unsafe {
         gl::Enable(gl::DEPTH_TEST);
         gl::DepthFunc(gl::LEQUAL);
@@ -133,7 +137,7 @@ fn main() -> Result<(), String> {
         player: Sprite::new(1.0, 1.0, 0.8, 1.0),
     };
 
-    let mut level = Level::generate_level();
+    let mut level = Level::generate_level(&room_templates);
     level.build_chunks();
 
     state.player.update_animation_state();
@@ -188,7 +192,7 @@ fn main() -> Result<(), String> {
         //Update the player
         state.player.update(dt, &level);
         state.player.update_animation_frame(dt);
-        state.player.update_animation_state();
+        state.player.update_animation_state(); 
 
         gfx::output_gl_errors();
         window.swap_buffers();

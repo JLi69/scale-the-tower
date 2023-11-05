@@ -22,8 +22,16 @@ pub enum Tile {
     Brick,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+#[repr(u8)]
+pub enum BackgroundTile {
+    Empty,
+    Wall
+}
+
 pub struct Level {
     tiles: Vec<Tile>,
+    background_tiles: Vec<BackgroundTile>,
     width: u32,
     height: u32,
 
@@ -39,6 +47,7 @@ impl Level {
         //be used to generate a more complex level
         Self {
             tiles: vec![Tile::Brick; w as usize * h as usize],
+            background_tiles: vec![BackgroundTile::Wall; w as usize * h as usize],
             width: w,
             height: h,
 
@@ -300,6 +309,65 @@ impl Level {
         }
     }
 
+    pub fn add_background_vertices(&self, x: u32, y: u32, vertices: &mut Vec<f32>) {
+        let background = [
+            1.0f32,
+            1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            1.0,
+            -1.0,
+            0.0,
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            0.0,
+            -1.0,
+            -1.0,
+            -1.0,
+            0.0,
+            1.0 / TEXTURE_SCALE,
+            1.0,
+            -1.0,
+            -1.0,
+            1.0 / TEXTURE_SCALE,
+            1.0 / TEXTURE_SCALE,
+        ];
+
+        if self.get_tile(x, y) != Tile::Air {
+            return 
+        }
+
+        //6 vertices per face
+        for i in 0..6 {
+            //Add the vertex position (x, y, z)
+            vertices.push(background[i * VERTEX_LEN] + 2.0 * x as f32);
+            vertices.push(background[i * VERTEX_LEN + 1] + 2.0 * y as f32);
+            vertices.push(background[i * VERTEX_LEN + 2]);
+
+            //Add the texture coordinates
+            match self.get_background_tile(x, y) {
+                BackgroundTile::Wall => {
+                    vertices.push(background[i * VERTEX_LEN + 3]);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                _ => {
+                    vertices.push(background[i * VERTEX_LEN + 3]);
+                    vertices.push(background[i * VERTEX_LEN + 4]);
+                }
+            }
+        }
+    }
+
     //Builds a vector of vertices for a single chunk
     pub fn get_chunk_vertices(&self, chunk_x: u32, chunk_y: u32) -> Vec<f32> {
         let mut vertices = vec![];
@@ -307,6 +375,12 @@ impl Level {
         for x in (chunk_x * CHUNK_SIZE)..(chunk_x * CHUNK_SIZE + CHUNK_SIZE) {
             for y in (chunk_y * CHUNK_SIZE)..(chunk_y * CHUNK_SIZE + CHUNK_SIZE) {
                 self.add_tile_vertices(x, y, &mut vertices);
+            }
+        }
+
+        for x in (chunk_x * CHUNK_SIZE)..(chunk_x * CHUNK_SIZE + CHUNK_SIZE) {
+            for y in (chunk_y * CHUNK_SIZE)..(chunk_y * CHUNK_SIZE + CHUNK_SIZE) {
+                self.add_background_vertices(x, y, &mut vertices);
             }
         }
 
@@ -414,6 +488,15 @@ impl Level {
         self.tiles[((self.width * y) + x) as usize]
     }
 
+    pub fn get_background_tile(&self, x: u32, y: u32) -> BackgroundTile {
+        //Out of bounds, return Air as the default
+        if x >= self.width || y >= self.height {
+            return BackgroundTile::Empty;
+        }
+
+        self.background_tiles[((self.width * y) + x) as usize]
+    }
+
     pub fn set_tile(&mut self, x: u32, y: u32, tile: Tile) {
         //Out of bounds, ignore
         if x >= self.width || y >= self.height {
@@ -421,6 +504,15 @@ impl Level {
         }
 
         self.tiles[((self.width * y) + x) as usize] = tile;
+    }
+
+    pub fn set_background_tile(&mut self, x: u32, y: u32, tile: BackgroundTile) {
+        //Out of bounds, ignore
+        if x >= self.width || y >= self.height {
+            return;
+        }
+
+        self.background_tiles[((self.width * y) + x) as usize] = tile;
     }
 
     //Display the level

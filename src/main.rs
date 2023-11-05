@@ -130,10 +130,10 @@ fn main() -> Result<(), String> {
     //Initialize the current state of the application
     let mut state = State {
         perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
-        player: Sprite::new(8.0, 8.0, 0.8, 1.0),
+        player: Sprite::new(1.0, 1.0, 0.8, 1.0),
     };
 
-    let mut level = Level::test_level();
+    let mut level = Level::generate_level();
     level.build_chunks();
 
     state.player.update_animation_state();
@@ -164,7 +164,7 @@ fn main() -> Result<(), String> {
         level_shader.uniform_matrix4f("uTransform", &transform_matrix);
         level.display();
 
-        //Display the player sprite 
+        //Display the player sprite
         rect_vao.bind();
         sprite_shader.use_program();
         sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);

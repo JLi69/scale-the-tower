@@ -12,7 +12,7 @@ impl Texture {
         Self { id: 0 }
     }
 
-    //Attempt to load texture from a PNG file 
+    //Attempt to load texture from a PNG file
     //(assume that the PNG file has its colors encoded in RGBA)
     pub fn load_from_file(path: &str) -> Result<Self, String> {
         let file_res = File::open(path);
@@ -66,7 +66,7 @@ impl Texture {
 impl Drop for Texture {
     fn drop(&mut self) {
         unsafe {
-            gl::DeleteTextures(1, &self.id); 
+            gl::DeleteTextures(1, &self.id);
         }
     }
 }
@@ -151,10 +151,10 @@ impl VertexArrayObject {
                 1.0, -1.0, 1.0, /* Top face */
                 1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0,
                 -1.0, 1.0, 1.0, /* Bottom face */
-                -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0, -1.0,
-                1.0, -1.0, -1.0, /* Left face */
-                -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0,
-                -1.0, -1.0, 1.0, /* Right face */
+                -1.0, -1.0, 1.0, 1.0, -1.0, -1.0, 1.0, -1.0, 1.0, -1.0, -1.0, 1.0, -1.0, -1.0,
+                -1.0, 1.0, -1.0, -1.0, /* Left face */
+                -1.0, 1.0, -1.0, -1.0, -1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0,
+                -1.0, -1.0, -1.0, 1.0, /* Right face */
                 1.0, -1.0, -1.0, 1.0, 1.0, -1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0,
                 1.0, 1.0, 1.0, /* Back face */
                 -1.0, -1.0, -1.0, -1.0, 1.0, -1.0, 1.0, 1.0, -1.0, 1.0, -1.0, -1.0, -1.0, -1.0,

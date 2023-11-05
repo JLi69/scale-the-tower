@@ -69,10 +69,10 @@ impl Sprite {
         if self.intersecting(sprite) {
             if self.position.x > sprite.position.x {
                 self.position.x =
-                    sprite.position.x + sprite.dimensions.x / 2.0 + self.dimensions.x / 2.0;
+                    sprite.position.x + sprite.dimensions.x / 2.0 + self.dimensions.x / 2.0 + 0.01;
             } else if self.position.x < sprite.position.x {
                 self.position.x =
-                    sprite.position.x - sprite.dimensions.x / 2.0 - self.dimensions.x / 2.0;
+                    sprite.position.x - sprite.dimensions.x / 2.0 - self.dimensions.x / 2.0 - 0.01;
             }
         }
     }
@@ -87,12 +87,12 @@ impl Sprite {
                 self.falling = false;
             } else if self.position.y < sprite.position.y {
                 self.position.y =
-                    sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0;
-                //We hit the bottom of a tile, start falling again
-                self.falling = true;
+                    sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0; 
                 //Set y velocity to 0 so we don't "stick" to the tile if the
                 //player decides to hold down the jump key
                 self.velocity.y = 0.0;
+                //We hit the bottom of a tile, start falling again
+                self.falling = true;
             }
         }
     }
@@ -113,9 +113,9 @@ impl Sprite {
         self.position.x += self.velocity.x * dt;
         //Handle collision
         let top_left = vec2(self.position.x, self.position.y)
-            - vec2(self.dimensions.x / 2.0 + 1.0, self.dimensions.y / 2.0 + 1.0);
+            - vec2(self.dimensions.x.ceil() / 2.0 + 1.0, self.dimensions.y.ceil() / 2.0 + 1.0);
         let bot_right = vec2(self.position.x, self.position.y)
-            + vec2(self.dimensions.x / 2.0 + 1.0, self.dimensions.y / 2.0 + 1.0);
+            + vec2(self.dimensions.x.ceil() / 2.0 + 1.0, self.dimensions.y.ceil() / 2.0 + 1.0);
         let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
         let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
@@ -144,14 +144,14 @@ impl Sprite {
 
         //Handle collision
         let top_left = vec2(self.position.x, self.position.y)
-            - vec2(self.dimensions.x / 2.0 + 1.0, self.dimensions.y / 2.0 + 1.0);
+            - vec2(self.dimensions.x.ceil() / 2.0 + 1.0, self.dimensions.y.ceil() / 2.0 + 1.0);
         let bot_right = vec2(self.position.x, self.position.y)
-            + vec2(self.dimensions.x / 2.0 + 1.0, self.dimensions.y / 2.0 + 1.0);
+            + vec2(self.dimensions.x.ceil() / 2.0 + 1.0, self.dimensions.y.ceil() / 2.0 + 1.0);
         let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
         let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
         self.falling = true;
-        
+
         //Uncollide from any tiles and also determine if the sprite is falling
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
@@ -186,7 +186,7 @@ impl Sprite {
                 / self.animation_duration) as u8
     }
 
-    //Updates the animation state of the player based on various conditions 
+    //Updates the animation state of the player based on various conditions
     pub fn update_animation_state(&mut self) {
         if self.falling {
             self.animation_state = AnimationState::Jumping

@@ -3,7 +3,7 @@ use std::os::raw::c_void;
 
 //The distance of the level from the camera
 pub const LEVEL_Z: f32 = -8.0;
-//There will be a maximum of TEXTURE_SCALE * TEXTURE_SCALE 
+//There will be a maximum of TEXTURE_SCALE * TEXTURE_SCALE
 //different tile textures that will be stored in a single texture
 const TEXTURE_SCALE: f32 = 8.0;
 //Size of a "chunk" of tiles in the level
@@ -12,6 +12,8 @@ const TEXTURE_SCALE: f32 = 8.0;
 //we can reduce the number of OpenGL calls made
 //when drawing the level
 const CHUNK_SIZE: u32 = 16;
+//Size of a room
+const ROOM_SIZE: u32 = 16;
 //Number of f32 elements in a vertex
 const VERTEX_LEN: usize = 5;
 
@@ -26,7 +28,7 @@ pub enum Tile {
 #[repr(u8)]
 pub enum BackgroundTile {
     Empty,
-    Wall
+    Wall,
 }
 
 pub struct Level {
@@ -43,7 +45,7 @@ pub struct Level {
 
 impl Level {
     pub fn new(w: u32, h: u32) -> Self {
-        //Creates a level filled with bricks that can 
+        //Creates a level filled with bricks that can
         //be used to generate a more complex level
         Self {
             tiles: vec![Tile::Brick; w as usize * h as usize],
@@ -57,36 +59,41 @@ impl Level {
             ],
             level_chunk_vertex_buffers: vec![
                 0;
-                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1)
+                    * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_texture_coordinates: vec![
                 0;
-                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1)
+                    * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_vertex_count: vec![
                 0;
-                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
+                ((w / CHUNK_SIZE) as usize + 1)
+                    * ((h / CHUNK_SIZE) as usize + 1)
             ],
         }
     }
 
-    //NOTE: Delete this later
-    pub fn test_level() -> Self {
-        let mut test_level = Self::new(32, 32);
+    fn generate_room(&mut self, room_x: u32, room_y: u32) {
+        for x in room_x..(room_x + ROOM_SIZE) {
+            for y in room_y..(room_y + ROOM_SIZE) {
+                self.set_tile(x, y, Tile::Air); 
+            }
+        }
+    }
 
-        for x in 8..24 {
-            for y in 8..24 {
-                test_level.set_tile(x, y, Tile::Air);
+    pub fn generate_level() -> Self {
+        let mut level = Self::new(69, 69);
+
+        for room_x in 0..4 {
+            for room_y in 0..4 {
+                level.generate_room(room_x * (ROOM_SIZE + 1) + 1, room_y * (ROOM_SIZE + 1) + 1);
             }
         }
 
-        test_level.set_tile(12, 9, Tile::Brick);
-        test_level.set_tile(15, 11, Tile::Brick);
-        test_level.set_tile(16, 11, Tile::Brick);
-        test_level.set_tile(17, 11, Tile::Brick);
-        test_level.set_tile(19, 11, Tile::Brick);
-
-        test_level
+        
+        level
     }
 
     //Adds the vertices of a single face to the vertex vector
@@ -343,8 +350,8 @@ impl Level {
             1.0 / TEXTURE_SCALE,
         ];
 
-        if self.get_tile(x, y) != Tile::Air {
-            return 
+        if self.get_tile(x, y) != Tile::Air || self.get_background_tile(x, y) == BackgroundTile::Empty {
+            return;
         }
 
         //6 vertices per face
@@ -465,8 +472,8 @@ impl Level {
             );
         }
 
-        for chunk_x in 0..(self.width / CHUNK_SIZE) {
-            for chunk_y in 0..(self.height / CHUNK_SIZE) {
+        for chunk_x in 0..(self.width / CHUNK_SIZE + 1) {
+            for chunk_y in 0..(self.height / CHUNK_SIZE + 1) {
                 self.build_chunk(chunk_x, chunk_y);
             }
         }

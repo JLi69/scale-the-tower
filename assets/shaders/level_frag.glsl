@@ -8,7 +8,12 @@ uniform sampler2D tex;
 
 void main()
 {
-	outColor = texture(tex, tc);
+	vec4 col = texture(tex, tc);
+
+	if(col.a < 0.01)
+		discard;
+
+	outColor = col;
 
 	float a = outColor.a;
 

@@ -18,6 +18,7 @@ const ROOM_SIZE: u32 = 16;
 pub enum Tile {
     Air,
     Brick,
+    Ladder,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -25,6 +26,10 @@ pub enum Tile {
 pub enum BackgroundTile {
     Empty,
     Wall,
+}
+
+pub fn transparent(tile: Tile) -> bool {
+    matches!(tile, Tile::Air | Tile::Ladder)
 }
 
 pub struct Level {

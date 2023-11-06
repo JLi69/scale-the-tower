@@ -28,6 +28,7 @@ fn ascii_to_tile(ch: u8) -> Option<Tile> {
     match ch {
         b'#' => Some(Tile::Brick),
         b'.' => Some(Tile::Air),
+        b'|' => Some(Tile::Ladder),
         _ => None,
     }
 }

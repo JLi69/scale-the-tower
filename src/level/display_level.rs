@@ -1,4 +1,4 @@
-use super::{BackgroundTile, Level, Tile, CHUNK_SIZE};
+use super::{BackgroundTile, Level, Tile, CHUNK_SIZE, transparent};
 use std::mem::size_of;
 use std::os::raw::c_void;
 
@@ -16,12 +16,21 @@ impl Level {
             //Add the vertex position (x, y, z)
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
             vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
-            vertices.push(face[i * VERTEX_LEN + 2]);
+            
+            if self.get_tile(x, y) == Tile::Ladder {
+                vertices.push(face[i * VERTEX_LEN + 2] - 1.2);
+            } else {
+                vertices.push(face[i * VERTEX_LEN + 2]);
+            }
 
             //Add the texture coordinates
             match self.get_tile(x, y) {
                 Tile::Brick => {
                     vertices.push(face[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
+                    vertices.push(face[i * VERTEX_LEN + 4]);
+                }
+                Tile::Ladder => {
+                    vertices.push(face[i * VERTEX_LEN + 3] + 2.0 / TEXTURE_SCALE);
                     vertices.push(face[i * VERTEX_LEN + 4]);
                 }
                 _ => {
@@ -208,23 +217,27 @@ impl Level {
         //is no point in adding that to the mesh
         self.add_vertices(x, y, &front_face, vertices);
 
+        if self.get_tile(x, y) == Tile::Ladder {
+            return; 
+        }
+
         //Check if the other faces are covered so that we don't add more
         //vertices than we need to. The out of bounds check is to make sure
         //that x and y don't underflow when subtracting 1 from them and avoid
         //causing a crash in debug mode
-        if self.out_of_bounds(x as i32, y as i32 + 1) || self.get_tile(x, y + 1) == Tile::Air {
+        if self.out_of_bounds(x as i32, y as i32 + 1) || transparent(self.get_tile(x, y + 1)) {
             self.add_vertices(x, y, &top_face, vertices);
         }
 
-        if self.out_of_bounds(x as i32, y as i32 - 1) || self.get_tile(x, y - 1) == Tile::Air {
+        if self.out_of_bounds(x as i32, y as i32 - 1) || transparent(self.get_tile(x, y - 1)) {
             self.add_vertices(x, y, &bottom_face, vertices);
         }
 
-        if self.out_of_bounds(x as i32 - 1, y as i32) || self.get_tile(x - 1, y) == Tile::Air {
+        if self.out_of_bounds(x as i32 - 1, y as i32) || transparent(self.get_tile(x - 1, y)) {
             self.add_vertices(x, y, &left_face, vertices);
         }
 
-        if self.out_of_bounds(x as i32 + 1, y as i32) || self.get_tile(x + 1, y) == Tile::Air {
+        if self.out_of_bounds(x as i32 + 1, y as i32) || transparent(self.get_tile(x + 1, y)) {
             self.add_vertices(x, y, &right_face, vertices);
         }
     }
@@ -263,7 +276,7 @@ impl Level {
             1.0 / TEXTURE_SCALE,
         ];
 
-        if self.get_tile(x, y) != Tile::Air
+        if !transparent(self.get_tile(x, y))
             || self.get_background_tile(x, y) == BackgroundTile::Empty
         {
             return;
@@ -296,15 +309,15 @@ impl Level {
 
         for x in (chunk_x * CHUNK_SIZE)..(chunk_x * CHUNK_SIZE + CHUNK_SIZE) {
             for y in (chunk_y * CHUNK_SIZE)..(chunk_y * CHUNK_SIZE + CHUNK_SIZE) {
-                self.add_tile_vertices(x, y, &mut vertices);
+                self.add_background_vertices(x, y, &mut vertices);
             }
         }
 
         for x in (chunk_x * CHUNK_SIZE)..(chunk_x * CHUNK_SIZE + CHUNK_SIZE) {
             for y in (chunk_y * CHUNK_SIZE)..(chunk_y * CHUNK_SIZE + CHUNK_SIZE) {
-                self.add_background_vertices(x, y, &mut vertices);
+                self.add_tile_vertices(x, y, &mut vertices);
             }
-        }
+        } 
 
         vertices
     }

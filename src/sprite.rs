@@ -1,10 +1,12 @@
-use crate::level::{Level, Tile};
+use crate::level::{Level, Tile, transparent};
 use cgmath::{vec2, Vector2};
 
 //Speed the player walks at
 pub const PLAYER_SPEED: f32 = 3.0;
 //Jump speed of the player
 pub const PLAYER_JUMP_SPEED: f32 = 9.0;
+//Speed the player climbs at
+pub const PLAYER_CLIMB_SPEED: f32 = 4.0;
 //Force of gravity on all sprites
 pub const GRAVITY: f32 = 16.0;
 
@@ -22,6 +24,7 @@ pub struct Sprite {
     pub velocity: Vector2<f32>,
     //Whether the sprite is falling (not supported by any tiles)
     falling: bool,
+    climbing: bool,
     pub flipped: bool,
 
     //In seconds
@@ -43,6 +46,7 @@ impl Sprite {
             dimensions: vec2(w, h),
             velocity: vec2(0.0, 0.0),
             falling: false,
+            climbing: false,
             flipped: false,
 
             animation_timer: 0.0,
@@ -86,6 +90,7 @@ impl Sprite {
                 //If we are supported by a tile then stop falling
                 self.falling = false;
                 self.velocity.y = -0.01;
+                self.climbing = false;
             } else if self.position.y < sprite.position.y {
                 self.position.y =
                     sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0;
@@ -134,17 +139,22 @@ impl Sprite {
                     continue;
                 }
 
-                if level.get_tile(x as u32, y as u32) != Tile::Air {
+                if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     self.uncollide_x(&hitbox);
                 }
             }
         }
 
+        //Cap speed of player when they are on a ladder
+        if self.climbing {
+            self.velocity.y = self.velocity.y.abs().min(PLAYER_CLIMB_SPEED) * self.velocity.y.signum(); 
+        }
+
         //Update y
         self.position.y += self.velocity.y / 2.0 * dt;
         //Accelerate due to gravity
-        if self.falling {
+        if self.falling && !self.climbing {
             self.velocity.y -= GRAVITY * dt;
         }
         self.position.y += self.velocity.y / 2.0 * dt;
@@ -164,6 +174,7 @@ impl Sprite {
         let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
         self.falling = true;
+        self.climbing = false;
 
         //Uncollide from any tiles and also determine if the sprite is falling
         for x in top_left_x..bot_right_x {
@@ -172,9 +183,15 @@ impl Sprite {
                     continue;
                 }
 
-                if level.get_tile(x as u32, y as u32) != Tile::Air {
+                if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     self.uncollide_y(&hitbox);
+                } else if level.get_tile(x as u32, y as u32) == Tile::Ladder {
+                    let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                    if self.intersecting(&hitbox) {
+                        self.falling = false; 
+                        self.climbing = true;
+                    }
                 }
             }
         }
@@ -231,5 +248,10 @@ impl Sprite {
     //Returns if the sprite is falling
     pub fn falling(&self) -> bool {
         self.falling
+    }
+
+    //Returns if the sprite is climbing
+    pub fn climbing(&self) -> bool {
+        self.climbing 
     }
 }

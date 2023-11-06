@@ -40,15 +40,21 @@ fn handle_key_input(
     state: &mut State,
 ) {
     if action == glfw::Action::Press {
-        if key == glfw::Key::Up && !state.player.falling() {
+        if key == glfw::Key::Up && !state.player.falling() && !state.player.climbing() {
             state.player.velocity.y = sprite::PLAYER_JUMP_SPEED;
+        } else if key == glfw::Key::Up && state.player.climbing() { 
+            state.player.velocity.y = sprite::PLAYER_CLIMB_SPEED;
+        } else if key == glfw::Key::Down && state.player.climbing() { 
+            state.player.velocity.y = -sprite::PLAYER_CLIMB_SPEED;
         } else if key == glfw::Key::Left {
             state.player.velocity.x = -sprite::PLAYER_SPEED;
         } else if key == glfw::Key::Right {
             state.player.velocity.x = sprite::PLAYER_SPEED;
         }
     } else if action == glfw::Action::Release {
-        if key == glfw::Key::Left || key == glfw::Key::Right {
+        if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {
+            state.player.velocity.y = 0.0;
+        } else if key == glfw::Key::Left || key == glfw::Key::Right {
             state.player.velocity.x = 0.0;
         }
     }

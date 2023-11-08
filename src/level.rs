@@ -19,6 +19,8 @@ pub enum Tile {
     Air,
     Brick,
     Ladder,
+    BrickTile,
+    BrickTile2
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

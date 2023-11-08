@@ -28,7 +28,7 @@ impl Level {
             for y in 0..ROOM_SIZE {
                 let tile_x = x + room_x * (ROOM_SIZE + 1) + 1;
                 let tile_y = y + room_y * (ROOM_SIZE + 1) + 1;
-                self.set_tile(tile_x, tile_y, random_template.get_tile(x, y)); 
+                self.set_tile(tile_x, tile_y, random_template.get_tile(x, y));  
             }
         } 
     }
@@ -79,19 +79,7 @@ impl Level {
 
             (((exit_x) * (ROOM_SIZE + 1) + ROOM_SIZE / 2 - 1)
                 ..((exit_x) * (ROOM_SIZE + 1) + ROOM_SIZE / 2 + 3))
-                .for_each(|x| level.set_tile(x, (room_y + 1) * (ROOM_SIZE + 1), Tile::Air));
-
-            /*
-            //Attempt to generate a second possible exit to the next floor
-            if rng.gen::<u32>() % 2 == 0 && room_y > 0 && room_y < 3 {
-                let exit_x = rng.gen::<u32>() % 4;
-
-                (((exit_x) * (ROOM_SIZE + 1) + ROOM_SIZE / 2 - 1)
-                    ..((exit_x) * (ROOM_SIZE + 1) + ROOM_SIZE / 2 + 3))
-                    .for_each(|x| level.set_tile(x, (room_y + 1) * (ROOM_SIZE + 1), Tile::Air));
-             
-                level.generate_room_from_template(&template_list.vertical_room_templates, &mut rng, exit_x, room_y);         
-            }*/
+                .for_each(|x| level.set_tile(x, (room_y + 1) * (ROOM_SIZE + 1), Tile::Air)); 
         }
 
         level

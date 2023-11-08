@@ -23,19 +23,32 @@ impl Level {
                 vertices.push(face[i * VERTEX_LEN + 2]);
             }
 
+            let texture_coords = [ 
+                (face[i * VERTEX_LEN + 3] - 0.01 / TEXTURE_SCALE).max(0.0), 
+                (face[i * VERTEX_LEN + 4] - 0.01 / TEXTURE_SCALE).max(0.0)
+            ];
+
             //Add the texture coordinates
             match self.get_tile(x, y) {
                 Tile::Brick => {
-                    vertices.push(face[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
-                    vertices.push(face[i * VERTEX_LEN + 4]);
+                    vertices.push(texture_coords[0] + 1.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]);
                 }
                 Tile::Ladder => {
-                    vertices.push(face[i * VERTEX_LEN + 3] + 2.0 / TEXTURE_SCALE);
-                    vertices.push(face[i * VERTEX_LEN + 4]);
+                    vertices.push(texture_coords[0] + 2.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]);
+                }
+                Tile::BrickTile => {
+                    vertices.push(texture_coords[0] + 3.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]);
+                }
+                Tile::BrickTile2 => {
+                    vertices.push(texture_coords[0] + 4.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]);
                 }
                 _ => {
-                    vertices.push(face[i * VERTEX_LEN + 3]);
-                    vertices.push(face[i * VERTEX_LEN + 4]);
+                    vertices.push(texture_coords[0]);
+                    vertices.push(texture_coords[1]);
                 }
             }
         }

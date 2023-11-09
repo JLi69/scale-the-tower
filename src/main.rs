@@ -10,10 +10,10 @@ mod sprite;
 
 use cgmath::{Deg, Matrix4};
 use glfw::Context;
+use level::room_template;
 use level::Level;
 use sprite::Sprite;
 use std::{sync::mpsc::Receiver, time::Instant};
-use level::room_template;
 
 //Structure to store the current state of the application and allow us
 //to pass it to different functions so that it can be modified
@@ -42,9 +42,9 @@ fn handle_key_input(
     if action == glfw::Action::Press {
         if key == glfw::Key::Up && !state.player.falling() && !state.player.climbing() {
             state.player.velocity.y = sprite::PLAYER_JUMP_SPEED;
-        } else if key == glfw::Key::Up && state.player.climbing() { 
+        } else if key == glfw::Key::Up && state.player.climbing() {
             state.player.velocity.y = sprite::PLAYER_CLIMB_SPEED;
-        } else if key == glfw::Key::Down && state.player.climbing() { 
+        } else if key == glfw::Key::Down && state.player.climbing() {
             state.player.velocity.y = -sprite::PLAYER_CLIMB_SPEED;
         } else if key == glfw::Key::Left {
             state.player.velocity.x = -sprite::PLAYER_SPEED;
@@ -56,7 +56,7 @@ fn handle_key_input(
             state.player.velocity.y = 0.0;
         } else if key == glfw::Key::Left && state.player.velocity.x < 0.0 {
             state.player.velocity.x = 0.0;
-        } else if key == glfw::Key::Right && state.player.velocity.x > 0.0 { 
+        } else if key == glfw::Key::Right && state.player.velocity.x > 0.0 {
             state.player.velocity.x = 0.0;
         }
     }
@@ -87,7 +87,7 @@ fn main() -> Result<(), String> {
     let mut glfw = glfw::init_no_callbacks().map_err(|e| e.to_string())?;
     //Attempt to create window
     let (mut window, events) =
-        match glfw.create_window(800, 600, "Github Game Off 2023", glfw::WindowMode::Windowed) {
+        match glfw.create_window(800, 600, "Scale the Tower", glfw::WindowMode::Windowed) {
             Some(win) => win,
             _ => panic!("Failed to create window!"),
         };
@@ -98,7 +98,7 @@ fn main() -> Result<(), String> {
     gl::load_with(|symbol| window.get_proc_address(symbol) as *const _);
 
     //Attempt to load room templates
-    let room_templates = room_template::load_room_templates();
+    let room_templates = room_template::load_room_templates("assets/room_templates");
 
     unsafe {
         gl::Enable(gl::DEPTH_TEST);
@@ -201,7 +201,7 @@ fn main() -> Result<(), String> {
         //Update the player
         state.player.update(dt, &level);
         state.player.update_animation_frame(dt);
-        state.player.update_animation_state(); 
+        state.player.update_animation_state();
 
         gfx::output_gl_errors();
         window.swap_buffers();

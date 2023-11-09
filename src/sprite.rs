@@ -1,4 +1,4 @@
-use crate::level::{Level, Tile, transparent};
+use crate::level::{transparent, Level, Tile};
 use cgmath::{vec2, Vector2};
 
 //Speed the player walks at
@@ -148,7 +148,8 @@ impl Sprite {
 
         //Cap speed of player when they are on a ladder
         if self.climbing {
-            self.velocity.y = self.velocity.y.abs().min(PLAYER_CLIMB_SPEED) * self.velocity.y.signum(); 
+            self.velocity.y =
+                self.velocity.y.abs().min(PLAYER_CLIMB_SPEED) * self.velocity.y.signum();
         }
 
         //Update y
@@ -189,7 +190,7 @@ impl Sprite {
                 } else if level.get_tile(x as u32, y as u32) == Tile::Ladder {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     if self.intersecting(&hitbox) {
-                        self.falling = false; 
+                        self.falling = false;
                         self.climbing = true;
                     }
                 }
@@ -252,6 +253,6 @@ impl Sprite {
 
     //Returns if the sprite is climbing
     pub fn climbing(&self) -> bool {
-        self.climbing 
+        self.climbing
     }
 }

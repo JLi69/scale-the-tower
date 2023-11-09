@@ -1,6 +1,6 @@
 pub mod display_level;
-pub mod room_template;
 pub mod generate_level;
+pub mod room_template;
 
 //The distance of the level from the camera
 pub const LEVEL_Z: f32 = -8.0;
@@ -20,7 +20,7 @@ pub enum Tile {
     Brick,
     Ladder,
     BrickTile,
-    BrickTile2
+    BrickTile2,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -76,7 +76,7 @@ impl Level {
                     * ((h / CHUNK_SIZE) as usize + 1)
             ],
         }
-    } 
+    }
 
     //Returns true if the integer coordinates are outside of the level
     //(level coordinates range from 0 to width - 1 for x and

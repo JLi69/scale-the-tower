@@ -1,4 +1,4 @@
-use super::{BackgroundTile, Level, Tile, CHUNK_SIZE, transparent};
+use super::{transparent, BackgroundTile, Level, Tile, CHUNK_SIZE};
 use std::mem::size_of;
 use std::os::raw::c_void;
 
@@ -16,16 +16,16 @@ impl Level {
             //Add the vertex position (x, y, z)
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
             vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
-            
+
             if self.get_tile(x, y) == Tile::Ladder {
                 vertices.push(face[i * VERTEX_LEN + 2] - 1.2);
             } else {
                 vertices.push(face[i * VERTEX_LEN + 2]);
             }
 
-            let texture_coords = [ 
-                (face[i * VERTEX_LEN + 3] - 0.01 / TEXTURE_SCALE).max(0.0), 
-                (face[i * VERTEX_LEN + 4] - 0.01 / TEXTURE_SCALE).max(0.0)
+            let texture_coords = [
+                (face[i * VERTEX_LEN + 3] - 0.01 / TEXTURE_SCALE).max(0.0),
+                (face[i * VERTEX_LEN + 4] - 0.01 / TEXTURE_SCALE).max(0.0),
             ];
 
             //Add the texture coordinates
@@ -231,7 +231,7 @@ impl Level {
         self.add_vertices(x, y, &front_face, vertices);
 
         if self.get_tile(x, y) == Tile::Ladder {
-            return; 
+            return;
         }
 
         //Check if the other faces are covered so that we don't add more
@@ -330,7 +330,7 @@ impl Level {
             for y in (chunk_y * CHUNK_SIZE)..(chunk_y * CHUNK_SIZE + CHUNK_SIZE) {
                 self.add_tile_vertices(x, y, &mut vertices);
             }
-        } 
+        }
 
         vertices
     }

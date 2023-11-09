@@ -15,12 +15,6 @@ pub struct RoomTemplate {
     tiles: [Tile; (ROOM_SIZE * ROOM_SIZE) as usize],
 }
 
-pub struct TemplateList {
-    pub starting_room_templates: Vec<RoomTemplate>,
-    pub hallway_templates: Vec<RoomTemplate>,
-    pub vertical_room_templates: Vec<RoomTemplate>,
-}
-
 //Attempts to convert an ascii character
 //to a tile, if the character is not
 //recognized then this function returns None
@@ -50,7 +44,7 @@ impl RoomTemplate {
                 let mut y = ROOM_SIZE - 1;
                 for ch in &buf {
                     if !ch.is_ascii_graphic() {
-                        continue; 
+                        continue;
                     }
 
                     template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air));
@@ -105,16 +99,15 @@ fn load_room_template_from_direntry(
     }
 }
 
-fn load_templates_from_dir(dirpath: &str, room_template_list: &mut Vec<RoomTemplate>,) {
-    match std::fs::read_dir(dirpath) {
+pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
+    let mut template_list = Vec::new(); 
+
+    match std::fs::read_dir(path) {
         Ok(paths) => {
             for path in paths {
                 match path {
                     Ok(template_path) => {
-                        load_room_template_from_direntry(
-                            template_path,
-                            room_template_list,
-                        );
+                        load_room_template_from_direntry(template_path, &mut template_list);
                     }
                     Err(msg) => {
                         eprintln!("{msg}");
@@ -123,22 +116,10 @@ fn load_templates_from_dir(dirpath: &str, room_template_list: &mut Vec<RoomTempl
             }
         }
         Err(msg) => {
-            eprintln!("failed to open: {dirpath}");
+            eprintln!("failed to open: {path}");
             eprintln!("{msg}");
         }
     }
-}
-
-pub fn load_room_templates() -> TemplateList {
-    let mut template_list = TemplateList {
-        starting_room_templates: Vec::new(),
-        hallway_templates: Vec::new(),
-        vertical_room_templates: Vec::new(),
-    };
-
-    load_templates_from_dir("assets/room_templates/starting_rooms/", &mut template_list.starting_room_templates);
-    load_templates_from_dir("assets/room_templates/hallway_rooms/", &mut template_list.hallway_templates);
-    load_templates_from_dir("assets/room_templates/vertical_rooms/", &mut template_list.vertical_room_templates);
 
     template_list
 }

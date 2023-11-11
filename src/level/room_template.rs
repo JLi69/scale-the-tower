@@ -1,8 +1,9 @@
 use super::Tile;
+use super::InteractiveTile;
 use super::ROOM_SIZE;
-use std::fs::DirEntry;
 use std::fs::File;
 use std::io::Read;
+use core::slice::Iter;
 
 /*
  * There are 4 types of room templates:
@@ -11,8 +12,15 @@ use std::io::Read;
  * - Vertical -> this is the room that will lead the player to the next floor
  * */
 
+pub struct SpawnInteractiveTile {
+    pub tile_type: InteractiveTile,
+    pub tile_x: u32,
+    pub tile_y: u32,
+}
+
 pub struct RoomTemplate {
     tiles: [Tile; (ROOM_SIZE * ROOM_SIZE) as usize],
+    interactive_tiles: Vec<SpawnInteractiveTile>
 }
 
 //Attempts to convert an ascii character
@@ -30,32 +38,61 @@ fn ascii_to_tile(ch: u8) -> Option<Tile> {
     }
 }
 
+fn ascii_to_interactive_tile(ch: u8) -> Option<InteractiveTile> {
+    match ch {
+        b'g' => Some(InteractiveTile::Gold),
+        _ => None 
+    }
+}
+
 impl RoomTemplate {
     pub fn load_from_file(path: &str) -> Result<Self, String> {
         match File::open(path) {
             Ok(mut file) => {
                 let mut template = RoomTemplate {
                     tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
+                    interactive_tiles: Vec::new()
                 };
 
-                let mut buf = Vec::new();
-                file.read_to_end(&mut buf).map_err(|e| e.to_string())?;
+                let mut buf = [0u8; ((ROOM_SIZE + 1) * ROOM_SIZE) as usize];
+                file.read(&mut buf).map_err(|e| e.to_string())?;
 
                 let mut x = 0;
                 let mut y = ROOM_SIZE - 1;
-                for ch in &buf {
-                    if !ch.is_ascii_graphic() {
-                        continue;
-                    }
 
-                    template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air));
+                buf.iter()
+                    .filter(|ch| ch.is_ascii_graphic())
+                    .for_each(|ch| {
+                        template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air));
+                        x += 1;
+                        if x >= ROOM_SIZE && y > 0 {
+                            x = 0;
+                            y -= 1;
+                        }
+                    });
 
-                    x += 1;
-                    if x >= ROOM_SIZE && y > 0 {
-                        x = 0;
-                        y -= 1;
-                    }
-                }
+                x = 0;
+                y = ROOM_SIZE - 1;
+
+                buf.iter()
+                    .filter(|ch| ch.is_ascii_graphic())
+                    .for_each(|ch| {
+                        if let Some(t) = ascii_to_interactive_tile(*ch) {
+                            template.interactive_tiles.push(
+                                SpawnInteractiveTile { 
+                                    tile_type: t, 
+                                    tile_x: x, 
+                                    tile_y: y 
+                                }
+                            )
+                        }
+
+                        x += 1;
+                        if x >= ROOM_SIZE && y > 0 {
+                            x = 0;
+                            y -= 1;
+                        } 
+                    });
 
                 Ok(template)
             }
@@ -82,45 +119,49 @@ impl RoomTemplate {
 
         self.tiles[(y * ROOM_SIZE + x) as usize] = tile;
     }
-}
 
-fn load_room_template_from_direntry(
-    template_path: DirEntry,
-    room_template_list: &mut Vec<RoomTemplate>,
-) {
-    if let Some(path) = template_path.path().to_str() {
-        match RoomTemplate::load_from_file(path) {
-            Ok(template) => {
-                room_template_list.push(template);
-            }
-            Err(msg) => {
-                eprintln!("{msg}");
-            }
-        }
+    pub fn get_interactive_tile_spawns(&self) -> Iter<SpawnInteractiveTile> {
+        self.interactive_tiles.iter() 
     }
 }
 
 pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
-    let mut template_list = Vec::new();
+    let mut template_list_path = String::from(path);
+    template_list_path.push_str("/template_list.txt");
 
-    match std::fs::read_dir(path) {
-        Ok(paths) => {
-            for path in paths {
-                match path {
-                    Ok(template_path) => {
-                        load_room_template_from_direntry(template_path, &mut template_list);
-                    }
-                    Err(msg) => {
-                        eprintln!("{msg}");
-                    }
-                }
+    let paths: Vec<String> = match File::open(&template_list_path) {
+        Ok(mut file) => {
+            let mut buf = String::new();
+            match file.read_to_string(&mut buf) {
+                Ok(sz) => eprintln!("read {sz} bytes from {template_list_path}"),
+                Err(msg) => eprintln!("{msg}"),
             }
+
+            buf.lines()
+                .map(|line| {
+                    let mut path = String::from(path);
+                    path.push('/');
+                    path.push_str(line);
+                    path
+                })
+                .collect()
         }
         Err(msg) => {
-            eprintln!("failed to open: {path}");
+            eprintln!("failed to open: {template_list_path}");
             eprintln!("{msg}");
+            return Vec::new(); //return empty room template list
         }
-    }
+    };
 
-    template_list
+    paths
+        .iter()
+        .map(|path| RoomTemplate::load_from_file(path))
+        .filter(|template_res| template_res.is_ok())
+        .map(|template_res| {
+            template_res.unwrap_or(RoomTemplate {
+                tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
+                interactive_tiles: Vec::new()
+            })
+        })
+        .collect()
 }

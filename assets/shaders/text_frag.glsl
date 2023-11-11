@@ -7,16 +7,9 @@ in vec2 tc;
 uniform float uTexScale;
 uniform vec2 uTexOffset;
 uniform sampler2D tex;
-uniform bool uFlipped;
 
 void main()
 {
 	vec2 scaledTc = vec2(tc.x, 1.0 - tc.y) * uTexScale;
-	if(uFlipped)
-		scaledTc.x = uTexScale - scaledTc.x;
-
-	outColor = texture(tex, scaledTc + uTexOffset);
-	
-	if(outColor.a < 0.01)
-		discard;
+	outColor = texture(tex, scaledTc + vec2(uTexOffset.x, 1.0 - uTexOffset.y));
 }

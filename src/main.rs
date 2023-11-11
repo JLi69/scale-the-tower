@@ -7,8 +7,10 @@ mod gfx;
 mod level;
 mod shader;
 mod sprite;
+mod text;
 
 use cgmath::{Deg, Matrix4};
+use gfx::Texture;
 use glfw::Context;
 use level::room_template;
 use level::Level;
@@ -17,9 +19,13 @@ use std::{sync::mpsc::Receiver, time::Instant};
 
 //Structure to store the current state of the application and allow us
 //to pass it to different functions so that it can be modified
-struct State {
+pub struct State {
     perspective: Matrix4<f32>,
     player: Sprite,
+    score: u32,
+
+    player_health: u32,
+    max_player_health: u32,
 }
 
 //Handle window resizing
@@ -54,8 +60,9 @@ fn handle_key_input(
     } else if action == glfw::Action::Release {
         if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {
             state.player.velocity.y = 0.0;
-        } else if key == glfw::Key::Left && state.player.velocity.x < 0.0 || 
-            key == glfw::Key::Right && state.player.velocity.x > 0.0 {
+        } else if key == glfw::Key::Left && state.player.velocity.x < 0.0
+            || key == glfw::Key::Right && state.player.velocity.x > 0.0
+        {
             state.player.velocity.x = 0.0;
         }
     }
@@ -77,6 +84,16 @@ fn process_events(
                 handle_key_input(key, scancode, action, modifiers, state);
             }
             _ => {}
+        }
+    }
+}
+
+fn load_texture(path: &str) -> Texture {
+    match gfx::Texture::load_from_file(path) {
+        Ok(texture) => texture,
+        Err(msg) => {
+            eprintln!("{msg}");
+            gfx::Texture::new()
         }
     }
 }
@@ -109,7 +126,7 @@ fn main() -> Result<(), String> {
         gl::ClearColor(0.5, 0.8, 1.0, 1.0);
     }
 
-    let _cube_vao = gfx::VertexArrayObject::create_cube();
+    let cube_vao = gfx::VertexArrayObject::create_cube();
     let rect_vao = gfx::VertexArrayObject::create_rectangle();
 
     //Load Shaders
@@ -123,27 +140,23 @@ fn main() -> Result<(), String> {
         "assets/shaders/level_frag.glsl",
     );
 
-    //Load Textures
-    let sprite_textures = match gfx::Texture::load_from_file("assets/textures/sprites.png") {
-        Ok(texture) => texture,
-        Err(msg) => {
-            eprintln!("{msg}");
-            gfx::Texture::new()
-        }
-    };
+    let text_shader = shader::program_from_vert_and_frag(
+        "assets/shaders/text_vert.glsl",
+        "assets/shaders/text_frag.glsl",
+    );
 
-    let tile_textures = match gfx::Texture::load_from_file("assets/textures/tiles.png") {
-        Ok(texture) => texture,
-        Err(msg) => {
-            eprintln!("{msg}");
-            gfx::Texture::new()
-        }
-    };
+    //Load Textures
+    let sprite_textures = load_texture("assets/textures/sprites.png");
+    let tile_textures = load_texture("assets/textures/tiles.png");
+    let icons = load_texture("assets/textures/icons.png");
 
     //Initialize the current state of the application
     let mut state = State {
         perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
         player: Sprite::new(1.0, 1.0, 0.8, 1.0),
+        score: 0,
+        player_health: 4,
+        max_player_health: 4,
     };
 
     let mut level = Level::generate_level(&room_templates);
@@ -198,10 +211,47 @@ fn main() -> Result<(), String> {
         );
         rect_vao.draw_arrays();
 
+        cube_vao.bind(); 
+        sprite_shader.uniform_bool("uFlipped", false);
+        level.display_interactive_tiles(&cube_vao, &sprite_shader, &state.player.position);
+
+        //Display text
+        unsafe {
+            gl::Disable(gl::DEPTH_TEST);
+        }
+
+        text_shader.use_program();
+        text_shader.uniform_float("uTexScale", 1.0 / text::ICONS_TEXTURE_SCALE);
+        let (win_w, win_h) = window.get_size();
+        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32);
+
+        icons.bind();
+        text::display_ascii_text(
+            &rect_vao,
+            &text_shader,
+            format!("score:{}", state.score).as_bytes(),
+            -win_w as f32 / 2.0 + 24.0,
+            win_h as f32 / 2.0 - 48.0,
+            8.0,
+        );
+        text::display_health_bar(
+            &rect_vao,
+            &text_shader,
+            state.player_health,
+            state.max_player_health,
+            -win_w as f32 / 2.0 + 24.0,
+            win_h as f32 / 2.0 - 24.0,
+        );
+
+        unsafe {
+            gl::Enable(gl::DEPTH_TEST);
+        }
+
         //Update the player
         state.player.update(dt, &level);
         state.player.update_animation_frame(dt);
         state.player.update_animation_state();
+        level.update_interactive_tiles(&mut state);
 
         gfx::output_gl_errors();
         window.swap_buffers();

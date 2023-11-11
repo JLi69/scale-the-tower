@@ -1,6 +1,7 @@
 pub mod display_level;
 pub mod generate_level;
 pub mod room_template;
+pub mod update_level;
 
 //The distance of the level from the camera
 pub const LEVEL_Z: f32 = -8.0;
@@ -21,7 +22,7 @@ pub enum Tile {
     Ladder,
     BrickTile,
     BrickTile2,
-    Lava
+    Lava,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -31,6 +32,18 @@ pub enum BackgroundTile {
     Wall,
 }
 
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub enum InteractiveTile {
+    Gold,
+}
+
+#[derive(Copy, Clone)]
+pub struct InteractiveTileSprite {
+    tile_type: InteractiveTile,
+    tile_x: f32,
+    tile_y: f32
+}
+
 pub fn transparent(tile: Tile) -> bool {
     matches!(tile, Tile::Air | Tile::Ladder | Tile::Lava)
 }
@@ -38,6 +51,7 @@ pub fn transparent(tile: Tile) -> bool {
 pub struct Level {
     tiles: Vec<Tile>,
     background_tiles: Vec<BackgroundTile>,
+    interactive_tiles: Vec<InteractiveTileSprite>,
     width: u32,
     height: u32,
 
@@ -53,6 +67,7 @@ impl Level {
         //be used to generate a more complex level
         Self {
             tiles: vec![Tile::Brick; w as usize * h as usize],
+            interactive_tiles: Vec::new(),
             background_tiles: vec![BackgroundTile::Wall; w as usize * h as usize],
             width: w,
             height: h,

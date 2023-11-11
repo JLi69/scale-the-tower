@@ -1,6 +1,9 @@
-use super::{transparent, BackgroundTile, Level, Tile, CHUNK_SIZE};
+use super::{transparent, BackgroundTile, Level, Tile, CHUNK_SIZE, InteractiveTile};
 use std::mem::size_of;
 use std::os::raw::c_void;
+use crate::gfx::VertexArrayObject;
+use crate::shader::ShaderProgram;
+use cgmath::{Matrix4, Vector2};
 
 //There will be a maximum of TEXTURE_SCALE * TEXTURE_SCALE
 //different tile textures that will be stored in a single texture
@@ -9,6 +12,8 @@ const TEXTURE_SCALE: f32 = 8.0;
 const VERTEX_LEN: usize = 5;
 const LAVA_HEIGHT: f32 = 0.8;
 
+const SPRITE_RENDER_DISTANCE: f32 = 64.0;
+
 impl Level {
     //Adds the vertices of a single face to the vertex vector
     fn add_vertices(&self, x: u32, y: u32, face: &[f32; 30], vertices: &mut Vec<f32>) {
@@ -16,12 +21,13 @@ impl Level {
         for i in 0..6 {
             //Add the vertex position (x, y, z)
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
-            
-            if self.get_tile(x, y) == Tile::Lava 
+
+            if self.get_tile(x, y) == Tile::Lava
                 && self.get_tile(x, y + 1) != Tile::Lava
-                && face[i * VERTEX_LEN + 1] > 0.0 {
+                && face[i * VERTEX_LEN + 1] > 0.0
+            {
                 vertices.push(face[i * VERTEX_LEN + 1] * LAVA_HEIGHT + 2.0 * y as f32);
-            } else { 
+            } else {
                 vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
             }
 
@@ -56,7 +62,7 @@ impl Level {
                 }
                 Tile::Lava => {
                     vertices.push(texture_coords[0] + 5.0 / TEXTURE_SCALE);
-                    vertices.push(texture_coords[1]); 
+                    vertices.push(texture_coords[1]);
                 }
                 _ => {
                     vertices.push(texture_coords[0]);
@@ -250,8 +256,10 @@ impl Level {
         //vertices than we need to. The out of bounds check is to make sure
         //that x and y don't underflow when subtracting 1 from them and avoid
         //causing a crash in debug mode
-        if self.out_of_bounds(x as i32, y as i32 + 1) || transparent(self.get_tile(x, y + 1)) ||
-           (self.get_tile(x, y) == Tile::Lava && self.get_tile(x, y + 1) != Tile::Lava) {
+        if self.out_of_bounds(x as i32, y as i32 + 1)
+            || transparent(self.get_tile(x, y + 1))
+            || (self.get_tile(x, y) == Tile::Lava && self.get_tile(x, y + 1) != Tile::Lava)
+        {
             self.add_vertices(x, y, &top_face, vertices);
         }
 
@@ -439,6 +447,54 @@ impl Level {
             unsafe {
                 gl::BindVertexArray(self.level_chunks[i]);
                 gl::DrawArrays(gl::TRIANGLES, 0, self.level_chunk_vertex_count[i] as i32);
+            }
+        } 
+    }
+
+    //Display interactive tiles
+    pub fn display_interactive_tiles(
+        &self, 
+        cube_vao: &VertexArrayObject, 
+        shader_program: &ShaderProgram,
+        player_position: &Vector2<f32>
+    ) {
+        for tile in &self.interactive_tiles {
+            if (tile.tile_y - player_position.y).abs() > SPRITE_RENDER_DISTANCE {
+                continue;
+            }
+
+            match tile.tile_type {
+                InteractiveTile::Gold => {
+                    shader_program.uniform_vec2f(
+                        "uTexOffset",
+                        0.0,
+                        2.0 / 8.0,
+                    ); 
+
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        tile.tile_x - 0.2,
+                        tile.tile_y - 0.4,
+                        0.0,
+                    )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.3);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                    
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        tile.tile_x + 0.2,
+                        tile.tile_y - 0.4,
+                        0.0,
+                    )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.3);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        tile.tile_x,
+                        tile.tile_y - 0.1,
+                        0.0,
+                    )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.3);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                }
             }
         }
     }

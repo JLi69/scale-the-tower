@@ -54,9 +54,8 @@ fn handle_key_input(
     } else if action == glfw::Action::Release {
         if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {
             state.player.velocity.y = 0.0;
-        } else if key == glfw::Key::Left && state.player.velocity.x < 0.0 {
-            state.player.velocity.x = 0.0;
-        } else if key == glfw::Key::Right && state.player.velocity.x > 0.0 {
+        } else if key == glfw::Key::Left && state.player.velocity.x < 0.0 || 
+            key == glfw::Key::Right && state.player.velocity.x > 0.0 {
             state.player.velocity.x = 0.0;
         }
     }
@@ -92,6 +91,7 @@ fn main() -> Result<(), String> {
             _ => panic!("Failed to create window!"),
         };
     window.make_current();
+    glfw.set_swap_interval(glfw::SwapInterval::Sync(1));
     window.set_framebuffer_size_polling(true);
     window.set_key_polling(true);
     //Attempt to load OpenGL functions

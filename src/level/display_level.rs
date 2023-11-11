@@ -7,6 +7,7 @@ use std::os::raw::c_void;
 const TEXTURE_SCALE: f32 = 8.0;
 //Number of f32 elements in a vertex
 const VERTEX_LEN: usize = 5;
+const LAVA_HEIGHT: f32 = 0.8;
 
 impl Level {
     //Adds the vertices of a single face to the vertex vector
@@ -15,7 +16,14 @@ impl Level {
         for i in 0..6 {
             //Add the vertex position (x, y, z)
             vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
-            vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
+            
+            if self.get_tile(x, y) == Tile::Lava 
+                && self.get_tile(x, y + 1) != Tile::Lava
+                && face[i * VERTEX_LEN + 1] > 0.0 {
+                vertices.push(face[i * VERTEX_LEN + 1] * LAVA_HEIGHT + 2.0 * y as f32);
+            } else { 
+                vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32);
+            }
 
             if self.get_tile(x, y) == Tile::Ladder {
                 vertices.push(face[i * VERTEX_LEN + 2] - 1.2);
@@ -45,6 +53,10 @@ impl Level {
                 Tile::BrickTile2 => {
                     vertices.push(texture_coords[0] + 4.0 / TEXTURE_SCALE);
                     vertices.push(texture_coords[1]);
+                }
+                Tile::Lava => {
+                    vertices.push(texture_coords[0] + 5.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]); 
                 }
                 _ => {
                     vertices.push(texture_coords[0]);
@@ -238,7 +250,8 @@ impl Level {
         //vertices than we need to. The out of bounds check is to make sure
         //that x and y don't underflow when subtracting 1 from them and avoid
         //causing a crash in debug mode
-        if self.out_of_bounds(x as i32, y as i32 + 1) || transparent(self.get_tile(x, y + 1)) {
+        if self.out_of_bounds(x as i32, y as i32 + 1) || transparent(self.get_tile(x, y + 1)) ||
+           (self.get_tile(x, y) == Tile::Lava && self.get_tile(x, y + 1) != Tile::Lava) {
             self.add_vertices(x, y, &top_face, vertices);
         }
 

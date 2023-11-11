@@ -21,6 +21,7 @@ pub enum Tile {
     Ladder,
     BrickTile,
     BrickTile2,
+    Lava
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -31,7 +32,7 @@ pub enum BackgroundTile {
 }
 
 pub fn transparent(tile: Tile) -> bool {
-    matches!(tile, Tile::Air | Tile::Ladder)
+    matches!(tile, Tile::Air | Tile::Ladder | Tile::Lava)
 }
 
 pub struct Level {

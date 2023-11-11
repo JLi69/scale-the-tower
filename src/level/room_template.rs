@@ -25,6 +25,7 @@ fn ascii_to_tile(ch: u8) -> Option<Tile> {
         b'|' => Some(Tile::Ladder),
         b'@' => Some(Tile::BrickTile),
         b'=' => Some(Tile::BrickTile2),
+        b'!' => Some(Tile::Lava),
         _ => None,
     }
 }
@@ -100,7 +101,7 @@ fn load_room_template_from_direntry(
 }
 
 pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
-    let mut template_list = Vec::new(); 
+    let mut template_list = Vec::new();
 
     match std::fs::read_dir(path) {
         Ok(paths) => {

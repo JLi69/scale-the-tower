@@ -23,6 +23,7 @@ pub enum Tile {
     BrickTile,
     BrickTile2,
     Lava,
+    Spikes,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]
@@ -46,7 +47,7 @@ pub struct InteractiveTileSprite {
 }
 
 pub fn transparent(tile: Tile) -> bool {
-    matches!(tile, Tile::Air | Tile::Ladder | Tile::Lava)
+    matches!(tile, Tile::Air | Tile::Ladder | Tile::Lava | Tile::Spikes)
 }
 
 pub struct Level {

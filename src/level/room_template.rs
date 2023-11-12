@@ -40,6 +40,7 @@ fn ascii_to_tile(ch: u8) -> Option<Tile> {
         b'@' => Some(Tile::BrickTile),
         b'=' => Some(Tile::BrickTile2),
         b'!' => Some(Tile::Lava),
+        b'^' => Some(Tile::Spikes),
         _ => None,
     }
 }

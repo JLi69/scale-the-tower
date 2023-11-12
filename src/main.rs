@@ -143,6 +143,11 @@ fn update_game_screen(state: &mut State, level: &mut Level, dt: f32) {
     if state.player.touching_tile(Tile::Lava, level) {
         state.player_health = 0;
     }
+    //Kill player instantly when jumping onto spikes
+    if state.player.touching_tile(Tile::Spikes, level) &&
+        state.player.velocity.y < -1.0 {
+        state.player_health = 0;
+    }
     state.player.update_animation_frame(dt);
     state.player.update_animation_state();
     level.update_interactive_tiles(state);

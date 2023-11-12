@@ -277,7 +277,11 @@ impl Sprite {
                     continue;
                 }
 
-                let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                let hitbox = if tile == Tile::Spikes {
+                    Sprite::new(x as f32, y as f32 - 0.2, 1.0, 0.6) 
+                } else { 
+                    Sprite::new(x as f32, y as f32, 1.0, 1.0) 
+                };
                 if level.get_tile(x as u32, y as u32) == tile && self.intersecting(&hitbox) {
                     return true;
                 }

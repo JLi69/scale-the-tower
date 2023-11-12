@@ -33,6 +33,8 @@ impl Level {
 
             if self.get_tile(x, y) == Tile::Ladder {
                 vertices.push(face[i * VERTEX_LEN + 2] - 1.2);
+            } else if self.get_tile(x, y) == Tile::Spikes {  
+                vertices.push(face[i * VERTEX_LEN + 2] - 0.7);
             } else {
                 vertices.push(face[i * VERTEX_LEN + 2]);
             }
@@ -64,11 +66,33 @@ impl Level {
                     vertices.push(texture_coords[0] + 5.0 / TEXTURE_SCALE);
                     vertices.push(texture_coords[1]);
                 }
+                Tile::Spikes => {
+                    vertices.push(texture_coords[0] + 6.0 / TEXTURE_SCALE);
+                    vertices.push(texture_coords[1]);
+                }
                 _ => {
                     vertices.push(texture_coords[0]);
                     vertices.push(texture_coords[1]);
                 }
             }
+        }
+
+        if self.get_tile(x, y) == Tile::Spikes {
+            for i in 0..6 {
+                //Add the vertex position (x, y, z)
+                vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
+                vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32); 
+                vertices.push(face[i * VERTEX_LEN + 2] - 1.3);
+
+                let texture_coords = [
+                    (face[i * VERTEX_LEN + 3] - 0.01 / TEXTURE_SCALE).max(0.0),
+                    (face[i * VERTEX_LEN + 4] - 0.01 / TEXTURE_SCALE).max(0.0),
+                ];
+
+                //Add the texture coordinates
+                vertices.push(texture_coords[0] + 6.0 / TEXTURE_SCALE);
+                vertices.push(texture_coords[1]);
+            } 
         }
     }
 
@@ -248,7 +272,7 @@ impl Level {
         //is no point in adding that to the mesh
         self.add_vertices(x, y, &front_face, vertices);
 
-        if self.get_tile(x, y) == Tile::Ladder {
+        if self.get_tile(x, y) == Tile::Ladder || self.get_tile(x, y) == Tile::Spikes {
             return;
         }
 

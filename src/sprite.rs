@@ -278,7 +278,7 @@ impl Sprite {
                 }
 
                 let hitbox = if tile == Tile::Spikes {
-                    Sprite::new(x as f32, y as f32 - 0.2, 1.0, 0.6) 
+                    Sprite::new(x as f32, y as f32 - 0.2, 0.8 / 2.0f32.sqrt(), 0.6) 
                 } else { 
                     Sprite::new(x as f32, y as f32, 1.0, 1.0) 
                 };

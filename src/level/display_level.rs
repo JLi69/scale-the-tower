@@ -20,7 +20,11 @@ impl Level {
         //6 vertices per face
         for i in 0..6 {
             //Add the vertex position (x, y, z)
-            vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
+            if self.get_tile(x, y) == Tile::Spikes { 
+                vertices.push(face[i * VERTEX_LEN] / 2.0f32.sqrt() + 2.0 * x as f32);
+            } else {
+                vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
+            }
 
             if self.get_tile(x, y) == Tile::Lava
                 && self.get_tile(x, y + 1) != Tile::Lava
@@ -34,7 +38,7 @@ impl Level {
             if self.get_tile(x, y) == Tile::Ladder {
                 vertices.push(face[i * VERTEX_LEN + 2] - 1.2);
             } else if self.get_tile(x, y) == Tile::Spikes {  
-                vertices.push(face[i * VERTEX_LEN + 2] - 0.7);
+                vertices.push(face[i * VERTEX_LEN + 2] + (face[i * VERTEX_LEN] / 2.0).fract() / 2.0f32.sqrt() - 1.0);
             } else {
                 vertices.push(face[i * VERTEX_LEN + 2]);
             }
@@ -80,9 +84,9 @@ impl Level {
         if self.get_tile(x, y) == Tile::Spikes {
             for i in 0..6 {
                 //Add the vertex position (x, y, z)
-                vertices.push(face[i * VERTEX_LEN] + 2.0 * x as f32);
+                vertices.push(face[i * VERTEX_LEN] / 2.0f32.sqrt() + 2.0 * x as f32);
                 vertices.push(face[i * VERTEX_LEN + 1] + 2.0 * y as f32); 
-                vertices.push(face[i * VERTEX_LEN + 2] - 1.3);
+                vertices.push(face[i * VERTEX_LEN + 2] - 1.0 - (face[i * VERTEX_LEN] / 2.0).fract() / 2.0f32.sqrt());
 
                 let texture_coords = [
                     (face[i * VERTEX_LEN + 3] - 0.01 / TEXTURE_SCALE).max(0.0),

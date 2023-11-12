@@ -145,7 +145,7 @@ fn update_game_screen(state: &mut State, level: &mut Level, dt: f32) {
     }
     //Kill player instantly when jumping onto spikes
     if state.player.touching_tile(Tile::Spikes, level) &&
-        state.player.velocity.y < -1.0 {
+        state.player.velocity.y < -sprite::PLAYER_CLIMB_SPEED {
         state.player_health = 0;
     }
     state.player.update_animation_frame(dt);
@@ -355,7 +355,8 @@ fn main() -> Result<(), String> {
         text_shader.use_program();
         text_shader.uniform_float("uTexScale", 1.0 / text::ICONS_TEXTURE_SCALE);
         let (win_w, win_h) = window.get_size();
-        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32);
+        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32); 
+        text_shader.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
         
         match state.game_screen {
             GameScreen::Game => {
@@ -372,6 +373,7 @@ fn main() -> Result<(), String> {
                 rect_shader.use_program();
                 rect_shader.uniform_vec4f("uColor", 0.6, 0.6, 0.6, 0.4);
                 rect_vao.draw_arrays();
+
                 text_shader.use_program();
                 text::display_ascii_text_centered(
                     &rect_vao,
@@ -388,7 +390,7 @@ fn main() -> Result<(), String> {
                     0.0,
                     48.0,
                     8.0
-                );
+                ); 
             }
             GameScreen::GameOver => {
                 rect_shader.use_program();

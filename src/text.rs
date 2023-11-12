@@ -91,3 +91,58 @@ pub fn display_health_bar(
         rect_vao.draw_arrays();
     }
 }
+
+pub struct Button {
+    pub text: Vec<u8>,
+    //Position in pixels
+    pub x: f32,
+    pub y: f32,
+    pub ch_sz: f32
+}
+
+impl Button {
+    pub fn new(ascii_text: &[u8], posx: f32, posy: f32, ch_size: f32) -> Self {
+        Self {
+            text: Vec::from(ascii_text),
+            x: posx,
+            y: posy,
+            ch_sz: ch_size
+        }
+    }
+
+    pub fn display(
+        &self, 
+        rect_vao: &VertexArrayObject, 
+        shader_program: &ShaderProgram,
+        mouse_x: f32,
+        mouse_y: f32,
+        win_w: f32,
+        win_h: f32
+    ) {
+        if self.mouse_hovering(mouse_x, mouse_y, win_w, win_h) { 
+            shader_program.uniform_vec4f("uColor", 0.5, 0.5, 0.5, 1.0); 
+        } else {
+            shader_program.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0); 
+        }
+
+        display_ascii_text_centered(
+            rect_vao,
+            shader_program,
+            &self.text,
+            self.x,
+            self.y,
+            self.ch_sz
+        );
+    }
+
+    pub fn width(&self) -> f32 {
+        2.0 * self.ch_sz * self.text.len() as f32
+    }
+
+    pub fn mouse_hovering(&self, mouse_x: f32, mouse_y: f32, win_w: f32, win_h: f32) -> bool {
+        mouse_x - win_w / 2.0 >= self.x - self.width() / 2.0 &&
+            mouse_x - win_w / 2.0 <= self.x + self.width() / 2.0 &&
+            win_h / 2.0 - mouse_y >= self.y - self.ch_sz &&
+            win_h / 2.0 - mouse_y <= self.y + self.ch_sz
+    }
+}

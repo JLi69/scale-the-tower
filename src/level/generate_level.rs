@@ -1,4 +1,7 @@
-use super::{room_template::RoomTemplate, Level, Tile, ROOM_SIZE, InteractiveTileSprite};
+use super::{
+    room_template::RoomTemplate, room_template::SpawnType, InteractiveTile, InteractiveTileSprite,
+    Level, Tile, ROOM_SIZE,
+};
 use rand::{rngs::ThreadRng, Rng};
 
 impl Level {
@@ -23,14 +26,35 @@ impl Level {
             }
         }
 
-        random_template.get_interactive_tile_spawns()
-            .for_each(|spawn_interactive_tile| {
-                self.interactive_tiles.push(InteractiveTileSprite { 
-                    tile_type: spawn_interactive_tile.tile_type, 
-                    tile_x: (spawn_interactive_tile.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32, 
-                    tile_y: (spawn_interactive_tile.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32
-                });
-            });
+        for spawn_location in random_template.get_spawns() {
+            match spawn_location.spawn_type {
+                SpawnType::MaybeTreasure => {
+                    let rand_number = rng.gen::<u32>() % 100;
+
+                    if rand_number < 10 {
+                        self.interactive_tiles.push(InteractiveTileSprite {
+                            tile_type: InteractiveTile::Gold,
+                            tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        });
+                    } else if rand_number < 50 {
+                        self.interactive_tiles.push(InteractiveTileSprite {
+                            tile_type: InteractiveTile::SmallGold,
+                            tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        });
+                    }
+                }
+                SpawnType::Treasure => {
+                    self.interactive_tiles.push(InteractiveTileSprite {
+                        tile_type: InteractiveTile::Gold,
+                        tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                        tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                    });
+                }
+                _ => {}
+            }
+        }
     }
 
     pub fn generate_level(template_list: &Vec<RoomTemplate>) -> Self {

@@ -1,9 +1,8 @@
 use super::Tile;
-use super::InteractiveTile;
 use super::ROOM_SIZE;
+use core::slice::Iter;
 use std::fs::File;
 use std::io::Read;
-use core::slice::Iter;
 
 /*
  * There are 4 types of room templates:
@@ -12,15 +11,22 @@ use core::slice::Iter;
  * - Vertical -> this is the room that will lead the player to the next floor
  * */
 
-pub struct SpawnInteractiveTile {
-    pub tile_type: InteractiveTile,
+pub enum SpawnType {
+    MaybeTreasure,
+    Treasure,
+    MaybeEnemy,
+    Enemy,
+}
+
+pub struct Spawn {
+    pub spawn_type: SpawnType,
     pub tile_x: u32,
     pub tile_y: u32,
 }
 
 pub struct RoomTemplate {
     tiles: [Tile; (ROOM_SIZE * ROOM_SIZE) as usize],
-    interactive_tiles: Vec<SpawnInteractiveTile>
+    spawns: Vec<Spawn>,
 }
 
 //Attempts to convert an ascii character
@@ -38,10 +44,11 @@ fn ascii_to_tile(ch: u8) -> Option<Tile> {
     }
 }
 
-fn ascii_to_interactive_tile(ch: u8) -> Option<InteractiveTile> {
+fn ascii_to_spawn(ch: u8) -> Option<SpawnType> {
     match ch {
-        b'g' => Some(InteractiveTile::Gold),
-        _ => None 
+        b'g' => Some(SpawnType::MaybeTreasure),
+        b'G' => Some(SpawnType::Treasure),
+        _ => None,
     }
 }
 
@@ -51,7 +58,7 @@ impl RoomTemplate {
             Ok(mut file) => {
                 let mut template = RoomTemplate {
                     tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
-                    interactive_tiles: Vec::new()
+                    spawns: Vec::new(),
                 };
 
                 let mut buf = [0u8; ((ROOM_SIZE + 1) * ROOM_SIZE) as usize];
@@ -77,21 +84,19 @@ impl RoomTemplate {
                 buf.iter()
                     .filter(|ch| ch.is_ascii_graphic())
                     .for_each(|ch| {
-                        if let Some(t) = ascii_to_interactive_tile(*ch) {
-                            template.interactive_tiles.push(
-                                SpawnInteractiveTile { 
-                                    tile_type: t, 
-                                    tile_x: x, 
-                                    tile_y: y 
-                                }
-                            )
+                        if let Some(t) = ascii_to_spawn(*ch) {
+                            template.spawns.push(Spawn {
+                                spawn_type: t,
+                                tile_x: x,
+                                tile_y: y,
+                            })
                         }
 
                         x += 1;
                         if x >= ROOM_SIZE && y > 0 {
                             x = 0;
                             y -= 1;
-                        } 
+                        }
                     });
 
                 Ok(template)
@@ -120,8 +125,8 @@ impl RoomTemplate {
         self.tiles[(y * ROOM_SIZE + x) as usize] = tile;
     }
 
-    pub fn get_interactive_tile_spawns(&self) -> Iter<SpawnInteractiveTile> {
-        self.interactive_tiles.iter() 
+    pub fn get_spawns(&self) -> Iter<Spawn> {
+        self.spawns.iter()
     }
 }
 
@@ -160,7 +165,7 @@ pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
         .map(|template_res| {
             template_res.unwrap_or(RoomTemplate {
                 tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
-                interactive_tiles: Vec::new()
+                spawns: Vec::new(),
             })
         })
         .collect()

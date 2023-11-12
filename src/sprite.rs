@@ -255,4 +255,35 @@ impl Sprite {
     pub fn climbing(&self) -> bool {
         self.climbing
     }
+
+    //Checks if the sprite is in contact with a certain type of tile
+    pub fn touching_tile(&self, tile: Tile, level: &Level) -> bool {
+        let top_left = vec2(self.position.x, self.position.y)
+            - vec2(
+                self.dimensions.x.ceil() / 2.0 + 1.0,
+                self.dimensions.y.ceil() / 2.0 + 1.0,
+            );
+        let bot_right = vec2(self.position.x, self.position.y)
+            + vec2(
+                self.dimensions.x.ceil() / 2.0 + 1.0,
+                self.dimensions.y.ceil() / 2.0 + 1.0,
+            );
+        let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
+        let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
+
+        for x in top_left_x..bot_right_x {
+            for y in top_left_y..bot_right_y {
+                if level.out_of_bounds(x, y) {
+                    continue;
+                }
+
+                let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                if level.get_tile(x as u32, y as u32) == tile && self.intersecting(&hitbox) {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
 }

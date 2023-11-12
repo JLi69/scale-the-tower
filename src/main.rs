@@ -13,9 +13,13 @@ use cgmath::{Deg, Matrix4};
 use gfx::Texture;
 use glfw::Context;
 use level::room_template;
-use level::Level;
+use level::{Level, Tile};
 use sprite::Sprite;
 use std::{sync::mpsc::Receiver, time::Instant};
+
+const DEFAULT_PLAYER_HEALTH: i32 = 4;
+const MAX_SAFE_FALL_SPEED: f32 = 14.0;
+const DAMAGE_COOLDOWN: f32 = 0.3;
 
 //Structure to store the current state of the application and allow us
 //to pass it to different functions so that it can be modified
@@ -24,8 +28,16 @@ pub struct State {
     player: Sprite,
     score: u32,
 
-    player_health: u32,
-    max_player_health: u32,
+    player_health: i32,
+    max_player_health: i32,
+    damage_cooldown: f32,
+}
+
+fn apply_damage(state: &mut State, amount: i32) {
+    if state.damage_cooldown <= 0.0 && amount > 0 {
+        state.player_health -= amount;
+        state.damage_cooldown = DAMAGE_COOLDOWN;
+    }
 }
 
 //Handle window resizing
@@ -145,6 +157,11 @@ fn main() -> Result<(), String> {
         "assets/shaders/text_frag.glsl",
     );
 
+    let rect_shader = shader::program_from_vert_and_frag(
+        "assets/shaders/rect_vert.glsl",
+        "assets/shaders/rect_frag.glsl",
+    );
+
     //Load Textures
     let sprite_textures = load_texture("assets/textures/sprites.png");
     let tile_textures = load_texture("assets/textures/tiles.png");
@@ -155,8 +172,9 @@ fn main() -> Result<(), String> {
         perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
         player: Sprite::new(1.0, 1.0, 0.8, 1.0),
         score: 0,
-        player_health: 4,
-        max_player_health: 4,
+        player_health: DEFAULT_PLAYER_HEALTH,
+        max_player_health: DEFAULT_PLAYER_HEALTH,
+        damage_cooldown: 0.0,
     };
 
     let mut level = Level::generate_level(&room_templates);
@@ -211,7 +229,7 @@ fn main() -> Result<(), String> {
         );
         rect_vao.draw_arrays();
 
-        cube_vao.bind(); 
+        cube_vao.bind();
         sprite_shader.uniform_bool("uFlipped", false);
         level.display_interactive_tiles(&cube_vao, &sprite_shader, &state.player.position);
 
@@ -243,15 +261,36 @@ fn main() -> Result<(), String> {
             win_h as f32 / 2.0 - 24.0,
         );
 
+        if state.damage_cooldown > 0.0 {
+            rect_shader.use_program();
+            rect_shader.uniform_vec4f("uColor", 1.0, 0.0, 0.0, state.damage_cooldown);
+            rect_vao.draw_arrays();
+        }
+
         unsafe {
             gl::Enable(gl::DEPTH_TEST);
         }
 
         //Update the player
+        let falling = state.player.falling();
+        let velocity_y = state.player.velocity.y;
         state.player.update(dt, &level);
+        //Hit the ground, apply fall damage if player is travelling fast enough
+        if falling && !state.player.falling() && velocity_y < -MAX_SAFE_FALL_SPEED {
+            apply_damage(
+                &mut state,
+                -((velocity_y + MAX_SAFE_FALL_SPEED) / 12.0).floor() as i32,
+            );
+        }
+        //Kill player instantly upon contact with lava
+        if state.player.touching_tile(Tile::Lava, &level) {
+            state.player_health = 0;
+        }
         state.player.update_animation_frame(dt);
         state.player.update_animation_state();
         level.update_interactive_tiles(&mut state);
+
+        state.damage_cooldown -= dt;
 
         gfx::output_gl_errors();
         window.swap_buffers();

@@ -34,6 +34,7 @@ pub enum BackgroundTile {
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 pub enum InteractiveTile {
+    SmallGold,
     Gold,
 }
 
@@ -41,7 +42,7 @@ pub enum InteractiveTile {
 pub struct InteractiveTileSprite {
     tile_type: InteractiveTile,
     tile_x: f32,
-    tile_y: f32
+    tile_y: f32,
 }
 
 pub fn transparent(tile: Tile) -> bool {

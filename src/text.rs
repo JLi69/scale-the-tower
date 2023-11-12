@@ -36,14 +36,19 @@ pub fn display_ascii_text(
 pub fn display_health_bar(
     rect_vao: &VertexArrayObject,
     shader_program: &ShaderProgram,
-    health: u32,
-    max_health: u32,
+    health: i32,
+    max_health: i32,
     x: f32,
     y: f32,
 ) {
     //Display player health
     shader_program.uniform_float("uScale", 12.0);
     shader_program.uniform_vec2f("uTexOffset", 0.0, 1.0 / 16.0);
+
+    if health < 0 {
+        shader_program.uniform_vec2f("uTexOffset", 1.0 / 16.0, 1.0 / 16.0);
+    }
+
     for hp in 0..max_health {
         if hp == health {
             shader_program.uniform_vec2f("uTexOffset", 1.0 / 16.0, 1.0 / 16.0);

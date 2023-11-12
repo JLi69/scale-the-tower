@@ -1,9 +1,9 @@
-use super::{transparent, BackgroundTile, Level, Tile, CHUNK_SIZE, InteractiveTile};
-use std::mem::size_of;
-use std::os::raw::c_void;
+use super::{transparent, BackgroundTile, InteractiveTile, Level, Tile, CHUNK_SIZE};
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
 use cgmath::{Matrix4, Vector2};
+use std::mem::size_of;
+use std::os::raw::c_void;
 
 //There will be a maximum of TEXTURE_SCALE * TEXTURE_SCALE
 //different tile textures that will be stored in a single texture
@@ -448,15 +448,15 @@ impl Level {
                 gl::BindVertexArray(self.level_chunks[i]);
                 gl::DrawArrays(gl::TRIANGLES, 0, self.level_chunk_vertex_count[i] as i32);
             }
-        } 
+        }
     }
 
     //Display interactive tiles
     pub fn display_interactive_tiles(
-        &self, 
-        cube_vao: &VertexArrayObject, 
+        &self,
+        cube_vao: &VertexArrayObject,
         shader_program: &ShaderProgram,
-        player_position: &Vector2<f32>
+        player_position: &Vector2<f32>,
     ) {
         for tile in &self.interactive_tiles {
             if (tile.tile_y - player_position.y).abs() > SPRITE_RENDER_DISTANCE {
@@ -465,11 +465,7 @@ impl Level {
 
             match tile.tile_type {
                 InteractiveTile::Gold => {
-                    shader_program.uniform_vec2f(
-                        "uTexOffset",
-                        0.0,
-                        2.0 / 8.0,
-                    ); 
+                    shader_program.uniform_vec2f("uTexOffset", 0.0, 2.0 / 8.0);
 
                     let transform_matrix = Matrix4::from_translation(cgmath::vec3(
                         tile.tile_x - 0.2,
@@ -478,7 +474,7 @@ impl Level {
                     )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.3);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();
-                    
+
                     let transform_matrix = Matrix4::from_translation(cgmath::vec3(
                         tile.tile_x + 0.2,
                         tile.tile_y - 0.4,
@@ -492,6 +488,17 @@ impl Level {
                         tile.tile_y - 0.1,
                         0.0,
                     )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.3);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                }
+                InteractiveTile::SmallGold => {
+                    shader_program.uniform_vec2f("uTexOffset", 0.0, 2.0 / 8.0);
+
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        tile.tile_x,
+                        tile.tile_y - 0.4,
+                        0.0,
+                    )) * Matrix4::from_nonuniform_scale(0.2, 0.15, 0.2);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();
                 }

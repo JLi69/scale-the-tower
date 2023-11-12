@@ -33,6 +33,40 @@ pub fn display_ascii_text(
     }
 }
 
+//Displays a string of text on the screen
+//text is an array of bytes representing an ascii string
+//center of text is (x, y) and ch_size is in pixels
+pub fn display_ascii_text_centered(
+    rect_vao: &VertexArrayObject,
+    shader_program: &ShaderProgram,
+    text: &[u8],
+    x: f32,
+    y: f32,
+    ch_size: f32,
+) {
+    shader_program.uniform_float("uScale", ch_size);
+    for (i, c) in text.iter().enumerate() {
+        shader_program.uniform_vec2f(
+            "uPosition", 
+            x + ch_size * i as f32 * 2.0 - ch_size * text.len() as f32 + ch_size, 
+            y
+        );
+
+        let ch = if c.is_ascii_alphabetic() {
+            text[i].to_ascii_uppercase()
+        } else {
+            text[i]
+        };
+
+        let tex_x = ((ch - b' ') % ICONS_TEXTURE_SCALE as u8) as f32 * 1.0 / ICONS_TEXTURE_SCALE;
+        let tex_y =
+            ((ch - b' ') / ICONS_TEXTURE_SCALE as u8 + 2) as f32 * 1.0 / ICONS_TEXTURE_SCALE;
+        shader_program.uniform_vec2f("uTexOffset", tex_x, tex_y);
+
+        rect_vao.draw_arrays();
+    }
+}
+
 pub fn display_health_bar(
     rect_vao: &VertexArrayObject,
     shader_program: &ShaderProgram,

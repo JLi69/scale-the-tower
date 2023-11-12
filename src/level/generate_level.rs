@@ -58,7 +58,7 @@ impl Level {
     }
 
     pub fn generate_level(template_list: &Vec<RoomTemplate>) -> Self {
-        let floors = 32;
+        let floors = 48;
         let mut level = Self::new(18, ROOM_SIZE * floors + floors + 1);
 
         let mut rng = rand::thread_rng();

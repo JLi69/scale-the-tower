@@ -3,6 +3,10 @@ use crate::shader::ShaderProgram;
 
 pub const ICONS_TEXTURE_SCALE: f32 = 16.0;
 
+pub const GOTO_MAIN_MENU_BUTTON_INDEX: usize = 0;
+pub const START_GAME_BUTTON_INDEX: usize = 0;
+pub const QUIT_GAME_BUTTON_INDEX: usize = 1;
+
 //Displays a string of text on the screen
 //text is an array of bytes representing an ascii string
 //top left of text is (x, y) and ch_size is in pixels
@@ -47,9 +51,9 @@ pub fn display_ascii_text_centered(
     shader_program.uniform_float("uScale", ch_size);
     for (i, c) in text.iter().enumerate() {
         shader_program.uniform_vec2f(
-            "uPosition", 
-            x + ch_size * i as f32 * 2.0 - ch_size * text.len() as f32 + ch_size, 
-            y
+            "uPosition",
+            x + ch_size * i as f32 * 2.0 - ch_size * text.len() as f32 + ch_size,
+            y,
         );
 
         let ch = if c.is_ascii_alphabetic() {
@@ -97,32 +101,36 @@ pub struct Button {
     //Position in pixels
     pub x: f32,
     pub y: f32,
-    pub ch_sz: f32
+    pub ch_sz: f32,
 }
 
 impl Button {
+    //Create a new button
     pub fn new(ascii_text: &[u8], posx: f32, posy: f32, ch_size: f32) -> Self {
         Self {
             text: Vec::from(ascii_text),
             x: posx,
             y: posy,
-            ch_sz: ch_size
+            ch_sz: ch_size,
         }
     }
 
+    //Displays the button to the screen, if the mouse is hovering over
+    //the button than the button will be darkened to indicate the mouse
+    //is hovering over it
     pub fn display(
-        &self, 
-        rect_vao: &VertexArrayObject, 
+        &self,
+        rect_vao: &VertexArrayObject,
         shader_program: &ShaderProgram,
         mouse_x: f32,
         mouse_y: f32,
         win_w: f32,
-        win_h: f32
+        win_h: f32,
     ) {
-        if self.mouse_hovering(mouse_x, mouse_y, win_w, win_h) { 
-            shader_program.uniform_vec4f("uColor", 0.5, 0.5, 0.5, 1.0); 
+        if self.mouse_hovering(mouse_x, mouse_y, win_w, win_h) {
+            shader_program.uniform_vec4f("uColor", 0.5, 0.5, 0.5, 1.0);
         } else {
-            shader_program.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0); 
+            shader_program.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
         }
 
         display_ascii_text_centered(
@@ -131,18 +139,35 @@ impl Button {
             &self.text,
             self.x,
             self.y,
-            self.ch_sz
+            self.ch_sz,
         );
     }
 
+    //Gets the width of the button
     pub fn width(&self) -> f32 {
         2.0 * self.ch_sz * self.text.len() as f32
     }
 
+    //Returns if the mouse is hovering over the button
     pub fn mouse_hovering(&self, mouse_x: f32, mouse_y: f32, win_w: f32, win_h: f32) -> bool {
-        mouse_x - win_w / 2.0 >= self.x - self.width() / 2.0 &&
-            mouse_x - win_w / 2.0 <= self.x + self.width() / 2.0 &&
-            win_h / 2.0 - mouse_y >= self.y - self.ch_sz &&
-            win_h / 2.0 - mouse_y <= self.y + self.ch_sz
+        mouse_x - win_w / 2.0 >= self.x - self.width() / 2.0
+            && mouse_x - win_w / 2.0 <= self.x + self.width() / 2.0
+            && win_h / 2.0 - mouse_y >= self.y - self.ch_sz
+            && win_h / 2.0 - mouse_y <= self.y + self.ch_sz
     }
+}
+
+pub fn create_pause_menu() -> Vec<Button> {
+    let mut menu = vec![];
+    menu.push(Button::new(b"Main Menu", 0.0, 0.0, 16.0)); //Go to main menu
+    menu.push(Button::new(b"Quit", 0.0, -48.0, 16.0)); //Quit game
+    menu
+}
+
+pub fn create_main_menu() -> Vec<Button> {
+    let mut menu = vec![];
+    menu.push(Button::new(b"Start!", 0.0, -48.0, 16.0)); //Start game
+    menu.push(Button::new(b"Quit", 0.0, -168.0, 16.0)); //Quit game
+    menu.push(Button::new(b"Credits", 0.0, -108.0, 16.0)); //Quit game
+    menu
 }

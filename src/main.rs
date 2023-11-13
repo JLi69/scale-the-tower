@@ -23,9 +23,10 @@ const DAMAGE_COOLDOWN: f32 = 0.3;
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 enum GameScreen {
+    MainMenu,
     Game,
     Paused,
-    GameOver
+    GameOver,
 }
 
 //Structure to store the current state of the application and allow us
@@ -34,12 +35,10 @@ pub struct State {
     perspective: Matrix4<f32>,
     player: Sprite,
     score: u32,
-
     player_health: i32,
     max_player_health: i32,
     damage_cooldown: f32,
-
-    game_screen: GameScreen
+    game_screen: GameScreen,
 }
 
 fn apply_damage(state: &mut State, amount: i32) {
@@ -144,8 +143,9 @@ fn update_game_screen(state: &mut State, level: &mut Level, dt: f32) {
         state.player_health = 0;
     }
     //Kill player instantly when jumping onto spikes
-    if state.player.touching_tile(Tile::Spikes, level) &&
-        state.player.velocity.y < -sprite::PLAYER_CLIMB_SPEED {
+    if state.player.touching_tile(Tile::Spikes, level)
+        && state.player.velocity.y < -sprite::PLAYER_CLIMB_SPEED
+    {
         state.player_health = 0;
     }
     state.player.update_animation_frame(dt);
@@ -154,7 +154,7 @@ fn update_game_screen(state: &mut State, level: &mut Level, dt: f32) {
     state.damage_cooldown -= dt;
 
     if state.player_health <= 0 {
-        state.game_screen = GameScreen::GameOver; 
+        state.game_screen = GameScreen::GameOver;
     }
 }
 
@@ -163,7 +163,7 @@ fn display_player(
     sprite_shader: &shader::ShaderProgram,
     state: &State,
 ) {
-    //Display the player sprite 
+    //Display the player sprite
     sprite_shader.uniform_bool("uFlipped", state.player.flipped);
     let transform_matrix = Matrix4::from_translation(cgmath::vec3(
         state.player.position.x,
@@ -183,8 +183,8 @@ fn display_game_screen_hud(
     rect_vao: &gfx::VertexArrayObject,
     text_shader: &shader::ShaderProgram,
     state: &State,
-    window: &glfw::Window
-) {  
+    window: &glfw::Window,
+) {
     let (win_w, win_h) = window.get_size();
 
     text::display_ascii_text(
@@ -210,7 +210,69 @@ fn display_game_screen_hud(
         state.max_player_health,
         -win_w as f32 / 2.0 + 24.0,
         win_h as f32 / 2.0 - 24.0,
-    ); 
+    );
+}
+
+fn handle_pause_menu_click(
+    menu: &Vec<text::Button>,
+    window: &glfw::Window,
+    state: &mut State,
+) {
+    let left_click_action = window.get_mouse_button(glfw::MouseButtonLeft);
+    let (mouse_x, mouse_y) = window.get_cursor_pos();
+    let (win_w, win_h) = window.get_size();
+    let (mouse_x, mouse_y) = (mouse_x as f32, mouse_y as f32);
+    let (win_w, win_h) = (win_w as f32, win_h as f32);
+
+    if menu[text::GOTO_MAIN_MENU_BUTTON_INDEX].mouse_hovering(mouse_x, mouse_y, win_w, win_h)
+        && left_click_action == glfw::Action::Press
+    {
+        state.game_screen = GameScreen::MainMenu;
+    } else if menu[text::QUIT_GAME_BUTTON_INDEX].mouse_hovering(mouse_x, mouse_y, win_w, win_h)
+        && left_click_action == glfw::Action::Press
+    {
+        std::process::exit(0);
+    }
+}
+
+fn handle_main_menu_click(
+    menu: &Vec<text::Button>,
+    window: &glfw::Window,
+    state: &mut State,
+    level: &mut Level,
+    room_templates: &Vec<level::room_template::RoomTemplate>
+) {
+    let left_click_action = window.get_mouse_button(glfw::MouseButtonLeft);
+    let (mouse_x, mouse_y) = window.get_cursor_pos();
+    let (win_w, win_h) = window.get_size();
+    let (mouse_x, mouse_y) = (mouse_x as f32, mouse_y as f32);
+    let (win_w, win_h) = (win_w as f32, win_h as f32);
+
+    if menu[text::START_GAME_BUTTON_INDEX].mouse_hovering(mouse_x, mouse_y, win_w, win_h)
+        && left_click_action == glfw::Action::Press
+    {
+        *state = starting_state();
+        state.perspective = cgmath::perspective(Deg(75.0), win_w / win_h, 0.1, 1000.0);
+        state.game_screen = GameScreen::Game;
+        *level = Level::generate_level(&room_templates);
+        level.build_chunks();
+    } else if menu[text::QUIT_GAME_BUTTON_INDEX].mouse_hovering(mouse_x, mouse_y, win_w, win_h)
+        && left_click_action == glfw::Action::Press
+    {
+        std::process::exit(0);
+    }
+}
+
+fn starting_state() -> State {
+    State {
+        perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
+        player: Sprite::new(1.0, 1.0, 0.8, 1.0),
+        score: 0,
+        player_health: DEFAULT_PLAYER_HEALTH,
+        max_player_health: DEFAULT_PLAYER_HEALTH,
+        damage_cooldown: 0.0,
+        game_screen: GameScreen::MainMenu,
+    }
 }
 
 fn main() -> Result<(), String> {
@@ -271,20 +333,14 @@ fn main() -> Result<(), String> {
     let icons = load_texture("assets/textures/icons.png");
 
     //Initialize the current state of the application
-    let mut state = State {
-        perspective: cgmath::perspective(Deg(75.0), 800.0 / 600.0, 0.1, 1000.0),
-        player: Sprite::new(1.0, 1.0, 0.8, 1.0),
-        score: 0,
-        player_health: DEFAULT_PLAYER_HEALTH,
-        max_player_health: DEFAULT_PLAYER_HEALTH,
-        damage_cooldown: 0.0,
-        game_screen: GameScreen::Game
-    };
+    let mut state = starting_state();
 
-    let mut level = Level::generate_level(&room_templates);
-    level.build_chunks();
+    let mut level = Level::new(1, 1);
 
     state.player.update_animation_state();
+
+    let pause_menu = text::create_pause_menu();
+    let main_menu = text::create_main_menu();
 
     let mut dt = 0.0f32;
     while !window.should_close() {
@@ -304,16 +360,17 @@ fn main() -> Result<(), String> {
         }
 
         match state.game_screen {
+            GameScreen::MainMenu => {}
             GameScreen::Game | GameScreen::Paused => {
-                //Display level 
+                //Display level
                 tile_textures.bind();
                 level_shader.use_program();
                 level_shader.uniform_matrix4f("uPerspective", &state.perspective);
                 level_shader.uniform_matrix4f("uView", &view_matrix);
                 let transform_matrix = Matrix4::from_scale(0.5);
                 level_shader.uniform_matrix4f("uTransform", &transform_matrix);
-                level.display(); 
-                //Display player sprite 
+                level.display();
+                //Display player sprite
                 rect_vao.bind();
                 sprite_shader.use_program();
                 sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
@@ -324,17 +381,17 @@ fn main() -> Result<(), String> {
                 //Display tiles that the player can interact with
                 cube_vao.bind();
                 sprite_shader.uniform_bool("uFlipped", false);
-                level.display_interactive_tiles(&cube_vao, &sprite_shader, &state.player.position);    
+                level.display_interactive_tiles(&cube_vao, &sprite_shader, &state.player.position);
             }
             GameScreen::GameOver => {
-                //Display level 
+                //Display level
                 tile_textures.bind();
                 level_shader.use_program();
                 level_shader.uniform_matrix4f("uPerspective", &state.perspective);
                 level_shader.uniform_matrix4f("uView", &view_matrix);
                 let transform_matrix = Matrix4::from_scale(0.5);
                 level_shader.uniform_matrix4f("uTransform", &transform_matrix);
-                level.display(); 
+                level.display();
                 //Display tiles that the player can interact with
                 sprite_shader.use_program();
                 sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
@@ -345,20 +402,54 @@ fn main() -> Result<(), String> {
                 sprite_shader.uniform_bool("uFlipped", false);
                 level.display_interactive_tiles(&cube_vao, &sprite_shader, &state.player.position);
             }
-        }    
+        }
 
-        //Display text 
+        //Display text
         unsafe {
             gl::Disable(gl::DEPTH_TEST);
         }
-        icons.bind(); 
+        rect_vao.bind();
+        icons.bind();
         text_shader.use_program();
         text_shader.uniform_float("uTexScale", 1.0 / text::ICONS_TEXTURE_SCALE);
         let (win_w, win_h) = window.get_size();
-        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32); 
+        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32);
         text_shader.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
-        
+
+        let (mouse_x, mouse_y) = window.get_cursor_pos();
+        let (win_w, win_h) = window.get_size();
+
         match state.game_screen {
+            GameScreen::MainMenu => {
+                text::display_ascii_text_centered(
+                    &rect_vao,
+                    &text_shader,
+                    b"Scale the Tower",
+                    0.0,
+                    160.0,
+                    20.0,
+                );
+
+                text::display_ascii_text_centered(
+                    &rect_vao,
+                    &text_shader,
+                    b"Created for the 2023 Game Off Jam",
+                    0.0,
+                    80.0,
+                    8.0,
+                );
+
+                for button in &main_menu {
+                    button.display(
+                        &rect_vao, 
+                        &text_shader, 
+                        mouse_x as f32, 
+                        mouse_y as f32, 
+                        win_w as f32, 
+                        win_h as f32
+                    ); 
+                }
+            }
             GameScreen::Game => {
                 display_game_screen_hud(&rect_vao, &text_shader, &state, &window);
                 //Make the screen flash red if the player takes damage
@@ -366,9 +457,9 @@ fn main() -> Result<(), String> {
                     rect_shader.use_program();
                     rect_shader.uniform_vec4f("uColor", 1.0, 0.0, 0.0, state.damage_cooldown);
                     rect_vao.draw_arrays();
-                } 
+                }
             }
-            GameScreen::Paused => { 
+            GameScreen::Paused => {
                 display_game_screen_hud(&rect_vao, &text_shader, &state, &window);
                 rect_shader.use_program();
                 rect_shader.uniform_vec4f("uColor", 0.6, 0.6, 0.6, 0.4);
@@ -380,8 +471,8 @@ fn main() -> Result<(), String> {
                     &text_shader,
                     b"Paused",
                     0.0,
-                    96.0,
-                    24.0
+                    128.0,
+                    32.0,
                 );
                 text::display_ascii_text_centered(
                     &rect_vao,
@@ -389,22 +480,33 @@ fn main() -> Result<(), String> {
                     b"Press Escape to Unpause",
                     0.0,
                     48.0,
-                    8.0
-                ); 
+                    8.0,
+                );
+
+                for button in &pause_menu {
+                    button.display(
+                        &rect_vao,
+                        &text_shader,
+                        mouse_x as f32,
+                        mouse_y as f32,
+                        win_w as f32,
+                        win_h as f32,
+                    )
+                }
             }
             GameScreen::GameOver => {
                 rect_shader.use_program();
                 rect_shader.uniform_vec4f("uColor", 1.0, 0.0, 0.0, 0.4);
                 rect_vao.draw_arrays();
-                
+
                 text_shader.use_program();
                 text::display_ascii_text_centered(
                     &rect_vao,
                     &text_shader,
-                    b"Game Over",
+                    b"Game Over!",
                     0.0,
                     96.0,
-                    24.0
+                    24.0,
                 );
 
                 text::display_ascii_text_centered(
@@ -415,6 +517,17 @@ fn main() -> Result<(), String> {
                     48.0,
                     8.0,
                 );
+
+                for button in &pause_menu {
+                    button.display(
+                        &rect_vao,
+                        &text_shader,
+                        mouse_x as f32,
+                        mouse_y as f32,
+                        win_w as f32,
+                        win_h as f32,
+                    )
+                }
             }
         }
 
@@ -423,11 +536,24 @@ fn main() -> Result<(), String> {
         }
 
         match state.game_screen {
-            GameScreen::Game => { 
-                update_game_screen(&mut state, &mut level, dt); 
+            GameScreen::MainMenu => {
+                handle_main_menu_click(
+                    &main_menu, 
+                    &window,
+                    &mut state,
+                    &mut level,
+                    &room_templates
+                );
             }
-            GameScreen::Paused => {}
-            GameScreen::GameOver => {}
+            GameScreen::Game => {
+                update_game_screen(&mut state, &mut level, dt);
+            }
+            GameScreen::Paused => {
+                handle_pause_menu_click(&pause_menu, &window, &mut state);
+            }
+            GameScreen::GameOver => { 
+                handle_pause_menu_click(&pause_menu, &window, &mut state);
+            }
         }
 
         gfx::output_gl_errors();

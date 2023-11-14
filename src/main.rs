@@ -116,6 +116,7 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
             state.level = Level::generate_level(&room_templates);
             state.level.build_chunks();
         }
+        ui::ButtonAction::NoAction => {}
     }
 }
 
@@ -171,8 +172,9 @@ fn main() -> Result<(), String> {
     //Initialize the current state of the application
     let mut state = State::starting_state();
 
-    let pause_menu = ui::create_pause_menu();
-    let main_menu = ui::create_main_menu();
+    let pause_menu = ui::Menu::create_pause_menu();
+    let main_menu = ui::Menu::create_main_menu();
+    let gameover_menu = ui::Menu::create_gameover_menu();
 
     let mut dt = 0.0f32;
     while !window.should_close() {
@@ -191,23 +193,26 @@ fn main() -> Result<(), String> {
             gl::Clear(gl::DEPTH_BUFFER_BIT);
         }
 
+        level_shader.use_program();
+        level_shader.uniform_matrix4f("uPerspective", &state.perspective);
+        level_shader.uniform_matrix4f("uView", &view_matrix);
+        let transform_matrix = Matrix4::from_scale(0.5);
+        level_shader.uniform_matrix4f("uTransform", &transform_matrix);
+        sprite_shader.use_program();
+        sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
+        sprite_shader.uniform_matrix4f("uView", &view_matrix);
+        sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
+
         match state.game_screen {
             GameScreen::MainMenu => {}
             GameScreen::Game | GameScreen::Paused => {
                 //Display level
                 tile_textures.bind();
-                level_shader.use_program();
-                level_shader.uniform_matrix4f("uPerspective", &state.perspective);
-                level_shader.uniform_matrix4f("uView", &view_matrix);
-                let transform_matrix = Matrix4::from_scale(0.5);
-                level_shader.uniform_matrix4f("uTransform", &transform_matrix);
+                level_shader.use_program(); 
                 state.level.display();
                 //Display player sprite
                 rect_vao.bind();
                 sprite_shader.use_program();
-                sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
-                sprite_shader.uniform_matrix4f("uView", &view_matrix);
-                sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
                 sprite_textures.bind();
                 state.player.display_player(&rect_vao, &sprite_shader);
                 //Display tiles that the player can interact with
@@ -222,17 +227,10 @@ fn main() -> Result<(), String> {
             GameScreen::GameOver => {
                 //Display level
                 tile_textures.bind();
-                level_shader.use_program();
-                level_shader.uniform_matrix4f("uPerspective", &state.perspective);
-                level_shader.uniform_matrix4f("uView", &view_matrix);
-                let transform_matrix = Matrix4::from_scale(0.5);
-                level_shader.uniform_matrix4f("uTransform", &transform_matrix);
+                level_shader.use_program(); 
                 state.level.display();
                 //Display tiles that the player can interact with
                 sprite_shader.use_program();
-                sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
-                sprite_shader.uniform_matrix4f("uView", &view_matrix);
-                sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
                 sprite_textures.bind();
                 cube_vao.bind();
                 sprite_shader.uniform_bool("uFlipped", false);
@@ -248,37 +246,18 @@ fn main() -> Result<(), String> {
         unsafe {
             gl::Disable(gl::DEPTH_TEST);
         }
+
         rect_vao.bind();
         icons.bind();
         text_shader.use_program();
         text_shader.uniform_float("uTexScale", 1.0 / ui::ICONS_TEXTURE_SCALE);
-        let (win_w, win_h) = window.get_size();
-        text_shader.uniform_vec2f("uScreenDimensions", win_w as f32, win_h as f32);
-        text_shader.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
-
         let win_info = get_glfw_window_info(&window);
+        text_shader.uniform_vec2f("uScreenDimensions", win_info.win_w, win_info.win_h);
+        text_shader.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
 
         match state.game_screen {
             GameScreen::MainMenu => {
-                ui::display_ascii_text_centered(
-                    &rect_vao,
-                    &text_shader,
-                    b"Scale the Tower",
-                    0.0,
-                    180.0,
-                    22.0,
-                );
-
-                ui::display_ascii_text_centered(
-                    &rect_vao,
-                    &text_shader,
-                    b"Created for the 2023 Game Off Jam",
-                    0.0,
-                    80.0,
-                    8.0,
-                );
-
-                ui::display_menu(&main_menu, &rect_vao, &text_shader, &win_info);
+                main_menu.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::Game => {
                 state
@@ -304,26 +283,8 @@ fn main() -> Result<(), String> {
                 rect_shader.use_program();
                 rect_shader.uniform_vec4f("uColor", 0.6, 0.6, 0.6, 0.4);
                 rect_vao.draw_arrays();
-
-                text_shader.use_program();
-                ui::display_ascii_text_centered(
-                    &rect_vao,
-                    &text_shader,
-                    b"Paused",
-                    0.0,
-                    128.0,
-                    32.0,
-                );
-                ui::display_ascii_text_centered(
-                    &rect_vao,
-                    &text_shader,
-                    b"Press Escape to Unpause",
-                    0.0,
-                    48.0,
-                    8.0,
-                );
-
-                ui::display_menu(&pause_menu, &rect_vao, &text_shader, &win_info);
+                text_shader.use_program(); 
+                pause_menu.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::GameOver => {
                 rect_shader.use_program();
@@ -334,22 +295,13 @@ fn main() -> Result<(), String> {
                 ui::display_ascii_text_centered(
                     &rect_vao,
                     &text_shader,
-                    b"Game Over!",
-                    0.0,
-                    96.0,
-                    24.0,
-                );
-
-                ui::display_ascii_text_centered(
-                    &rect_vao,
-                    &text_shader,
                     format!("score:{}", state.player.score).as_bytes(),
                     0.0,
                     48.0,
                     8.0,
                 );
 
-                ui::display_menu(&pause_menu, &rect_vao, &text_shader, &win_info);
+                gameover_menu.display(&rect_vao, &text_shader, &win_info);
             }
         }
 
@@ -358,14 +310,18 @@ fn main() -> Result<(), String> {
         }
 
         //Handle interaction with menu
-        let left_mouse_held = window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press;
+        let left_mouse_held = 
+            window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press;
         if left_mouse_held && !state.left_mouse_held {
             let button_action = match state.game_screen {
                 GameScreen::Game => None,
-                GameScreen::Paused | GameScreen::GameOver => {
-                    ui::get_clicked_button_action(&pause_menu, &win_info)
+                GameScreen::Paused => {
+                    pause_menu.get_clicked_button_action(&win_info)
                 }
-                GameScreen::MainMenu => ui::get_clicked_button_action(&main_menu, &win_info),
+                GameScreen::GameOver => {
+                    gameover_menu.get_clicked_button_action(&win_info)
+                }
+                GameScreen::MainMenu => main_menu.get_clicked_button_action(&win_info),
             };
 
             if let Some(action) = button_action {

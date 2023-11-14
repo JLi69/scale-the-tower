@@ -1,9 +1,9 @@
 use super::{InteractiveTile, Level};
+use crate::game::Player;
 use crate::sprite::Sprite;
-use crate::State;
 
 impl Level {
-    pub fn update_interactive_tiles(&mut self, state: &mut State) {
+    pub fn update_interactive_tiles(&mut self, player: &mut Player) {
         let mut delete_index = None;
 
         for (i, tile) in self.interactive_tiles.iter().enumerate() {
@@ -11,15 +11,15 @@ impl Level {
 
             match tile.tile_type {
                 InteractiveTile::Gold => {
-                    if state.player.intersecting(&hitbox) {
-                        state.score += 50;
+                    if player.player_spr.intersecting(&hitbox) {
+                        player.score += 50;
                         delete_index = Some(i);
                         break;
                     }
                 }
                 InteractiveTile::SmallGold => {
-                    if state.player.intersecting(&hitbox) {
-                        state.score += 10;
+                    if player.player_spr.intersecting(&hitbox) {
+                        player.score += 10;
                         delete_index = Some(i);
                         break;
                     }

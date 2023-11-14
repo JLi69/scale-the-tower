@@ -254,3 +254,13 @@ pub fn output_gl_errors() {
         }
     }
 }
+
+pub fn load_texture(path: &str) -> Texture {
+    match Texture::load_from_file(path) {
+        Ok(texture) => texture,
+        Err(msg) => {
+            eprintln!("{msg}");
+            Texture::new()
+        }
+    }
+}

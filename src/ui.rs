@@ -3,10 +3,6 @@ use crate::shader::ShaderProgram;
 
 pub const ICONS_TEXTURE_SCALE: f32 = 16.0;
 
-pub const GOTO_MAIN_MENU_BUTTON_INDEX: usize = 0;
-pub const START_GAME_BUTTON_INDEX: usize = 0;
-pub const QUIT_GAME_BUTTON_INDEX: usize = 1;
-
 //Displays a string of text on the screen
 //text is an array of bytes representing an ascii string
 //top left of text is (x, y) and ch_size is in pixels
@@ -96,22 +92,44 @@ pub fn display_health_bar(
     }
 }
 
+pub struct WindowInfo {
+    pub win_w: f32,
+    pub win_h: f32,
+    pub mouse_x: f32,
+    pub mouse_y: f32,
+}
+
+#[derive(Copy, Clone)]
+pub enum ButtonAction {
+    QuitGame,
+    GotoMainMenu,
+    StartGame,
+}
+
 pub struct Button {
     pub text: Vec<u8>,
     //Position in pixels
     pub x: f32,
     pub y: f32,
     pub ch_sz: f32,
+    pub click_action: ButtonAction,
 }
 
 impl Button {
     //Create a new button
-    pub fn new(ascii_text: &[u8], posx: f32, posy: f32, ch_size: f32) -> Self {
+    pub fn new(
+        ascii_text: &[u8],
+        posx: f32,
+        posy: f32,
+        ch_size: f32,
+        action: ButtonAction,
+    ) -> Self {
         Self {
             text: Vec::from(ascii_text),
             x: posx,
             y: posy,
             ch_sz: ch_size,
+            click_action: action,
         }
     }
 
@@ -122,12 +140,9 @@ impl Button {
         &self,
         rect_vao: &VertexArrayObject,
         shader_program: &ShaderProgram,
-        mouse_x: f32,
-        mouse_y: f32,
-        win_w: f32,
-        win_h: f32,
+        win_info: &WindowInfo,
     ) {
-        if self.mouse_hovering(mouse_x, mouse_y, win_w, win_h) {
+        if self.mouse_hovering(win_info) {
             shader_program.uniform_vec4f("uColor", 0.5, 0.5, 0.5, 1.0);
         } else {
             shader_program.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
@@ -149,25 +164,53 @@ impl Button {
     }
 
     //Returns if the mouse is hovering over the button
-    pub fn mouse_hovering(&self, mouse_x: f32, mouse_y: f32, win_w: f32, win_h: f32) -> bool {
-        mouse_x - win_w / 2.0 >= self.x - self.width() / 2.0
-            && mouse_x - win_w / 2.0 <= self.x + self.width() / 2.0
-            && win_h / 2.0 - mouse_y >= self.y - self.ch_sz
-            && win_h / 2.0 - mouse_y <= self.y + self.ch_sz
+    pub fn mouse_hovering(&self, win_info: &WindowInfo) -> bool {
+        win_info.mouse_x - win_info.win_w / 2.0 >= self.x - self.width() / 2.0
+            && win_info.mouse_x - win_info.win_w / 2.0 <= self.x + self.width() / 2.0
+            && win_info.win_h / 2.0 - win_info.mouse_y >= self.y - self.ch_sz
+            && win_info.win_h / 2.0 - win_info.mouse_y <= self.y + self.ch_sz
     }
 }
 
 pub fn create_pause_menu() -> Vec<Button> {
-    let mut menu = vec![];
-    menu.push(Button::new(b"Main Menu", 0.0, 0.0, 16.0)); //Go to main menu
-    menu.push(Button::new(b"Quit", 0.0, -48.0, 16.0)); //Quit game
-    menu
+    vec![
+        //Go to main menu
+        Button::new(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
+        //Quit game
+        Button::new(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
+    ]
 }
 
 pub fn create_main_menu() -> Vec<Button> {
-    let mut menu = vec![];
-    menu.push(Button::new(b"Start!", 0.0, -48.0, 16.0)); //Start game
-    menu.push(Button::new(b"Quit", 0.0, -168.0, 16.0)); //Quit game
-    menu.push(Button::new(b"Credits", 0.0, -108.0, 16.0)); //Quit game
-    menu
+    vec![
+        //Start game
+        Button::new(b"Start!", 0.0, -0.0, 16.0, ButtonAction::StartGame),
+        //Quit game
+        Button::new(b"Quit", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+        //Go to credits
+        Button::new(b"Credits", 0.0, -60.0, 16.0, ButtonAction::QuitGame),
+    ]
+}
+
+pub fn display_menu(
+    menu: &Vec<Button>,
+    rect_vao: &VertexArrayObject,
+    text_shader: &ShaderProgram,
+    win_info: &WindowInfo,
+) {
+    for button in menu {
+        button.display(rect_vao, text_shader, win_info)
+    }
+}
+
+pub fn get_clicked_button_action(
+    menu: &Vec<Button>,
+    win_info: &WindowInfo,
+) -> Option<ButtonAction> {
+    for button in menu {
+        if button.mouse_hovering(win_info) {
+            return Some(button.click_action);
+        }
+    }
+    None
 }

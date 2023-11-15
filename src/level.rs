@@ -60,6 +60,7 @@ pub struct Level {
     level_chunks: Vec<u32>,
     level_chunk_vertex_buffers: Vec<u32>,
     level_chunk_texture_coordinates: Vec<u32>,
+    level_chunk_animation: Vec<u32>,
     level_chunk_vertex_count: Vec<u32>,
 }
 
@@ -84,6 +85,11 @@ impl Level {
                     * ((h / CHUNK_SIZE) as usize + 1)
             ],
             level_chunk_texture_coordinates: vec![
+                0;
+                ((w / CHUNK_SIZE) as usize + 1)
+                    * ((h / CHUNK_SIZE) as usize + 1)
+            ],
+            level_chunk_animation: vec! [
                 0;
                 ((w / CHUNK_SIZE) as usize + 1)
                     * ((h / CHUNK_SIZE) as usize + 1)
@@ -153,6 +159,10 @@ impl Drop for Level {
             gl::DeleteBuffers(
                 self.level_chunk_texture_coordinates.len() as i32,
                 self.level_chunk_texture_coordinates.as_ptr(),
+            );
+            gl::DeleteBuffers(
+                self.level_chunk_animation.len() as i32,
+                self.level_chunk_animation.as_ptr(),
             );
         }
     }

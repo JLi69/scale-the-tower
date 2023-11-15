@@ -467,6 +467,10 @@ impl Level {
                 self.level_chunk_texture_coordinates.len() as i32,
                 self.level_chunk_texture_coordinates.as_mut_ptr(),
             );
+            gl::GenBuffers(
+                self.level_chunk_animation.len() as i32,
+                self.level_chunk_animation.as_mut_ptr(),
+            );
         }
 
         for chunk_x in 0..(self.width / CHUNK_SIZE + 1) {

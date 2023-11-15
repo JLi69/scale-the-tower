@@ -5,6 +5,8 @@ in vec4 fragPos;
 
 in vec2 tc;
 uniform sampler2D tex;
+uniform float uAnimationTimer;
+in float animation;
 
 void main()
 {

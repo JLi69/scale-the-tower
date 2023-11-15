@@ -104,7 +104,6 @@ pub enum ButtonAction {
     QuitGame,
     GotoMainMenu,
     StartGame,
-    NoAction,
 }
 
 pub struct MenuElement {
@@ -113,12 +112,12 @@ pub struct MenuElement {
     pub x: f32,
     pub y: f32,
     pub ch_sz: f32,
-    pub click_action: ButtonAction,
+    pub click_action: Option<ButtonAction>,
 }
 
 impl MenuElement {
-    //Create a new menu element 
-    pub fn new(
+    //Create a new menu element
+    pub fn button(
         ascii_text: &[u8],
         posx: f32,
         posy: f32,
@@ -130,7 +129,17 @@ impl MenuElement {
             x: posx,
             y: posy,
             ch_sz: ch_size,
-            click_action: action,
+            click_action: Some(action),
+        }
+    }
+
+    pub fn text(ascii_text: &[u8], posx: f32, posy: f32, ch_size: f32) -> Self {
+        Self {
+            text: Vec::from(ascii_text),
+            x: posx,
+            y: posy,
+            ch_sz: ch_size,
+            click_action: None,
         }
     }
 
@@ -160,12 +169,7 @@ impl MenuElement {
     }
 
     //Displays text onto the screen as a menu element
-    pub fn display_text(
-        &self,
-        rect_vao: &VertexArrayObject,
-        shader_program: &ShaderProgram,
-        win_info: &WindowInfo,
-    ) {
+    pub fn display_text(&self, rect_vao: &VertexArrayObject, shader_program: &ShaderProgram) {
         shader_program.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
         display_ascii_text_centered(
             rect_vao,
@@ -174,10 +178,10 @@ impl MenuElement {
             self.x,
             self.y,
             self.ch_sz,
-        ); 
+        );
     }
 
-    //Gets the width of the menu element 
+    //Gets the width of the menu element
     pub fn width(&self) -> f32 {
         2.0 * self.ch_sz * self.text.len() as f32
     }
@@ -193,7 +197,7 @@ impl MenuElement {
 
 pub struct Menu {
     text: Vec<MenuElement>,
-    buttons: Vec<MenuElement>
+    buttons: Vec<MenuElement>,
 }
 
 impl Menu {
@@ -201,23 +205,16 @@ impl Menu {
         Self {
             buttons: vec![
                 //Start game
-                MenuElement::new(b"Start!", 0.0, -0.0, 16.0, ButtonAction::StartGame),
+                MenuElement::button(b"Start!", 0.0, -0.0, 16.0, ButtonAction::StartGame),
                 //Quit game
-                MenuElement::new(b"Quit", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Quit", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
                 //Go to credits
-                MenuElement::new(b"Credits", 0.0, -60.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Credits", 0.0, -60.0, 16.0, ButtonAction::QuitGame),
             ],
             text: vec![
-                MenuElement::new(b"Scale the Tower", 0.0, 180.0, 22.0, ButtonAction::NoAction),
-
-                MenuElement::new(
-                    b"Created for the 2023 Game Off Jam",
-                    0.0,
-                    80.0,
-                    8.0,
-                    ButtonAction::NoAction
-                )
-            ]
+                MenuElement::text(b"Scale the Tower", 0.0, 180.0, 22.0),
+                MenuElement::text(b"Created for the 2023 Game Off Jam", 0.0, 80.0, 8.0),
+            ],
         }
     }
 
@@ -225,20 +222,14 @@ impl Menu {
         Self {
             buttons: vec![
                 //Go to main menu
-                MenuElement::new(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
+                MenuElement::button(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
                 //Quit game
-                MenuElement::new(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
             ],
             text: vec![
-                MenuElement::new(b"Paused", 0.0, 128.0, 32.0, ButtonAction::NoAction),
-                MenuElement::new(
-                    b"Press Escape to Unpause", 
-                    0.0,
-                    48.0,
-                    8.0,
-                    ButtonAction::NoAction
-                ),
-            ]
+                MenuElement::text(b"Paused", 0.0, 128.0, 32.0),
+                MenuElement::text(b"Press Escape to Unpause", 0.0, 48.0, 8.0),
+            ],
         }
     }
 
@@ -246,38 +237,33 @@ impl Menu {
         Self {
             buttons: vec![
                 //Go to main menu
-                MenuElement::new(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
+                MenuElement::button(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
                 //Quit game
-                MenuElement::new(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
             ],
-            text: vec![
-                MenuElement::new(b"Game Over!", 0.0, 96.0, 24.0, ButtonAction::NoAction), 
-            ]
+            text: vec![MenuElement::text(b"Game Over!", 0.0, 96.0, 24.0)],
         }
     }
 
     pub fn display(
-        &self, 
+        &self,
         rect_vao: &VertexArrayObject,
         text_shader: &ShaderProgram,
         win_info: &WindowInfo,
     ) {
         for text in &self.text {
-            text.display_text(rect_vao, text_shader, win_info)
-        } 
+            text.display_text(rect_vao, text_shader)
+        }
 
         for button in &self.buttons {
             button.display_button(rect_vao, text_shader, win_info)
-        } 
+        }
     }
 
-    pub fn get_clicked_button_action(
-        &self,
-        win_info: &WindowInfo,
-    ) -> Option<ButtonAction> {
+    pub fn get_clicked_button_action(&self, win_info: &WindowInfo) -> Option<ButtonAction> {
         for button in &self.buttons {
             if button.mouse_hovering(win_info) {
-                return Some(button.click_action);
+                return button.click_action;
             }
         }
         None

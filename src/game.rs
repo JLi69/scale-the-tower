@@ -1,10 +1,13 @@
 use crate::{Level, Sprite};
-use cgmath::{Deg, Matrix4};
+use cgmath::{Deg, Matrix4, Vector2};
 
 pub mod display;
+pub mod player;
 pub mod update_game;
 
 //Constants
+//Force of gravity on all sprites
+pub const GRAVITY: f32 = 16.0;
 pub const DEFAULT_PLAYER_HEALTH: i32 = 4;
 pub const DAMAGE_COOLDOWN: f32 = 0.3;
 
@@ -22,6 +25,8 @@ pub struct Player {
     pub player_health: i32,
     pub max_player_health: i32,
     pub damage_cooldown: f32,
+    falling: bool,
+    climbing: bool,
 }
 
 impl Player {
@@ -32,6 +37,8 @@ impl Player {
             player_health: DEFAULT_PLAYER_HEALTH,
             max_player_health: DEFAULT_PLAYER_HEALTH,
             damage_cooldown: 0.0,
+            falling: false,
+            climbing: false,
         }
     }
 
@@ -40,6 +47,16 @@ impl Player {
             self.player_health -= amount;
             self.damage_cooldown = DAMAGE_COOLDOWN;
         }
+    }
+
+    //Returns if the player is falling
+    pub fn falling(&self) -> bool {
+        self.falling
+    }
+
+    //Returns if the player is climbing
+    pub fn climbing(&self) -> bool {
+        self.climbing
     }
 }
 
@@ -62,5 +79,21 @@ impl State {
             level: Level::new(1, 1),
             left_mouse_held: false,
         }
+    }
+
+    pub fn player_position(&self) -> Vector2<f32> {
+        self.player.player_spr.position
+    }
+
+    pub fn set_player_velocity_x(&mut self, vel_x: f32) {
+        self.player.player_spr.velocity.x = vel_x;
+    }
+
+    pub fn set_player_velocity_y(&mut self, vel_y: f32) {
+        self.player.player_spr.velocity.y = vel_y;
+    }
+
+    pub fn player_velocity(&self) -> Vector2<f32> {
+        self.player.player_spr.velocity
     }
 }

@@ -55,27 +55,24 @@ fn handle_key_input(
             }
         }
 
-        if key == glfw::Key::Up
-            && !state.player.player_spr.falling()
-            && !state.player.player_spr.climbing()
-        {
-            state.player.player_spr.velocity.y = sprite::PLAYER_JUMP_SPEED;
-        } else if key == glfw::Key::Up && state.player.player_spr.climbing() {
-            state.player.player_spr.velocity.y = sprite::PLAYER_CLIMB_SPEED;
-        } else if key == glfw::Key::Down && state.player.player_spr.climbing() {
-            state.player.player_spr.velocity.y = -sprite::PLAYER_CLIMB_SPEED;
+        if key == glfw::Key::Up && !state.player.falling() && !state.player.climbing() {
+            state.set_player_velocity_y(game::player::PLAYER_JUMP_SPEED);
+        } else if key == glfw::Key::Up && state.player.climbing() {
+            state.set_player_velocity_y(game::player::PLAYER_CLIMB_SPEED);
+        } else if key == glfw::Key::Down && state.player.climbing() {
+            state.set_player_velocity_y(-game::player::PLAYER_CLIMB_SPEED);
         } else if key == glfw::Key::Left {
-            state.player.player_spr.velocity.x = -sprite::PLAYER_SPEED;
+            state.set_player_velocity_x(-game::player::PLAYER_SPEED);
         } else if key == glfw::Key::Right {
-            state.player.player_spr.velocity.x = sprite::PLAYER_SPEED;
+            state.set_player_velocity_x(game::player::PLAYER_SPEED);
         }
     } else if action == glfw::Action::Release {
-        if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.player_spr.climbing() {
-            state.player.player_spr.velocity.y = 0.0;
-        } else if key == glfw::Key::Left && state.player.player_spr.velocity.x < 0.0
-            || key == glfw::Key::Right && state.player.player_spr.velocity.x > 0.0
+        if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {
+            state.set_player_velocity_y(0.0);
+        } else if key == glfw::Key::Left && state.player_velocity().x < 0.0
+            || key == glfw::Key::Right && state.player_velocity().x > 0.0
         {
-            state.player.player_spr.velocity.x = 0.0;
+            state.set_player_velocity_x(0.0);
         }
     }
 }
@@ -116,7 +113,6 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
             state.level = Level::generate_level(&room_templates);
             state.level.build_chunks();
         }
-        ui::ButtonAction::NoAction => {}
     }
 }
 
@@ -179,12 +175,11 @@ fn main() -> Result<(), String> {
     let mut dt = 0.0f32;
     while !window.should_close() {
         let start = Instant::now();
-
         process_events(&mut window, &events, &mut state);
 
         let view_matrix = Matrix4::from_translation(cgmath::vec3(
-            -state.player.player_spr.position.x,
-            -state.player.player_spr.position.y,
+            -state.player_position().x,
+            -state.player_position().y,
             level::LEVEL_Z,
         ));
 
@@ -208,7 +203,7 @@ fn main() -> Result<(), String> {
             GameScreen::Game | GameScreen::Paused => {
                 //Display level
                 tile_textures.bind();
-                level_shader.use_program(); 
+                level_shader.use_program();
                 state.level.display();
                 //Display player sprite
                 rect_vao.bind();
@@ -221,13 +216,13 @@ fn main() -> Result<(), String> {
                 state.level.display_interactive_tiles(
                     &cube_vao,
                     &sprite_shader,
-                    &state.player.player_spr.position,
+                    &state.player_position(),
                 );
             }
             GameScreen::GameOver => {
                 //Display level
                 tile_textures.bind();
-                level_shader.use_program(); 
+                level_shader.use_program();
                 state.level.display();
                 //Display tiles that the player can interact with
                 sprite_shader.use_program();
@@ -237,7 +232,7 @@ fn main() -> Result<(), String> {
                 state.level.display_interactive_tiles(
                     &cube_vao,
                     &sprite_shader,
-                    &state.player.player_spr.position,
+                    &state.player_position(),
                 );
             }
         }
@@ -283,7 +278,7 @@ fn main() -> Result<(), String> {
                 rect_shader.use_program();
                 rect_shader.uniform_vec4f("uColor", 0.6, 0.6, 0.6, 0.4);
                 rect_vao.draw_arrays();
-                text_shader.use_program(); 
+                text_shader.use_program();
                 pause_menu.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::GameOver => {
@@ -310,17 +305,12 @@ fn main() -> Result<(), String> {
         }
 
         //Handle interaction with menu
-        let left_mouse_held = 
-            window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press;
+        let left_mouse_held = window.get_mouse_button(glfw::MouseButtonLeft) == glfw::Action::Press;
         if left_mouse_held && !state.left_mouse_held {
             let button_action = match state.game_screen {
                 GameScreen::Game => None,
-                GameScreen::Paused => {
-                    pause_menu.get_clicked_button_action(&win_info)
-                }
-                GameScreen::GameOver => {
-                    gameover_menu.get_clicked_button_action(&win_info)
-                }
+                GameScreen::Paused => pause_menu.get_clicked_button_action(&win_info),
+                GameScreen::GameOver => gameover_menu.get_clicked_button_action(&win_info),
                 GameScreen::MainMenu => main_menu.get_clicked_button_action(&win_info),
             };
 

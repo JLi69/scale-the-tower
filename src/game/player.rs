@@ -1,5 +1,5 @@
 use super::{Player, GRAVITY};
-use crate::level::{transparent, Level, Tile};
+use crate::level::{transparent, Level, Tile, ROOM_SIZE};
 use crate::sprite::Sprite;
 use cgmath::vec2;
 
@@ -145,6 +145,10 @@ impl Player {
                 }
             }
         }
+
+        //Clamp the player's position
+        self.player_spr.position.x = 
+            self.player_spr.position.x.clamp(0.0, ROOM_SIZE as f32 + 1.0);
     }
 
     //Updates the animation state of the player based on various conditions

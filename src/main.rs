@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 #![allow(clippy::zero_ptr)]
 
 extern crate gl;

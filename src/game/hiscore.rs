@@ -167,6 +167,7 @@ mod tests {
         let is_new = is_new_highscore(2, &hiscores);
         add_highscore(2, &mut hiscores);
         assert!(is_new);
+        assert!(!is_new_highscore(2, &hiscores));
         assert_eq!(hiscores, vec![2, 3, 4, 5, 6]);
     }
 }

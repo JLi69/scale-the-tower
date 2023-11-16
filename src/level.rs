@@ -12,7 +12,7 @@ pub const LEVEL_Z: f32 = -8.0;
 //when drawing the level
 const CHUNK_SIZE: u32 = 16;
 //Size of a room
-const ROOM_SIZE: u32 = 16;
+pub const ROOM_SIZE: u32 = 16;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[repr(u8)]

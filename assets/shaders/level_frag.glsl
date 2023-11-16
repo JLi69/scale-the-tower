@@ -10,7 +10,7 @@ in float animation;
 
 void main()
 {
-	vec4 col = texture(tex, tc);
+	vec4 col = texture(tex, tc + vec2(0.0, animation * floor(uAnimationTimer)));
 
 	if(col.a < 0.01)
 		discard;

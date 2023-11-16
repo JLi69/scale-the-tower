@@ -173,6 +173,7 @@ fn main() -> Result<(), String> {
     let gameover_menu = ui::Menu::create_gameover_menu();
 
     let mut dt = 0.0f32;
+    let mut tile_animation_timer = 0.0f32;
     while !window.should_close() {
         let start = Instant::now();
         process_events(&mut window, &events, &mut state);
@@ -193,6 +194,7 @@ fn main() -> Result<(), String> {
         level_shader.uniform_matrix4f("uView", &view_matrix);
         let transform_matrix = Matrix4::from_scale(0.5);
         level_shader.uniform_matrix4f("uTransform", &transform_matrix);
+        level_shader.uniform_float("uAnimationTimer", tile_animation_timer);
         sprite_shader.use_program();
         sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
         sprite_shader.uniform_matrix4f("uView", &view_matrix);
@@ -323,6 +325,12 @@ fn main() -> Result<(), String> {
 
         if state.game_screen == GameScreen::Game {
             state.update_game_screen(dt);
+        }
+
+        //Update the animation timer
+        tile_animation_timer += dt;
+        if tile_animation_timer > 2.0 {
+            tile_animation_timer = 0.0; 
         }
 
         gfx::output_gl_errors();

@@ -10,13 +10,14 @@ use std::os::raw::c_void;
 const TEXTURE_SCALE: f32 = 8.0;
 //Number of f32 elements in a vertex
 const VERTEX_LEN: usize = 5;
+const STRIDE: usize = 6;
 const LAVA_HEIGHT: f32 = 0.8;
 
 const SPRITE_RENDER_DISTANCE: f32 = 64.0;
 
 impl Level {
     //Adds the vertices of a single face to the vertex vector
-    fn add_vertices(&self, x: u32, y: u32, face: &[f32; 30], vertices: &mut Vec<f32>) {
+    fn add_vertices(&self, x: u32, y: u32, face: &[f32; VERTEX_LEN * 6], vertices: &mut Vec<f32>) {
         //6 vertices per face
         for i in 0..6 {
             //Add the vertex position (x, y, z)
@@ -82,6 +83,12 @@ impl Level {
                     vertices.push(texture_coords[1]);
                 }
             }
+
+            if self.get_tile(x, y) == Tile::Lava {
+                vertices.push(1.0 / TEXTURE_SCALE);
+            } else { 
+                vertices.push(0.0);
+            }
         }
 
         if self.get_tile(x, y) == Tile::Spikes {
@@ -103,6 +110,8 @@ impl Level {
                 //Add the texture coordinates
                 vertices.push(texture_coords[0] + 6.0 / TEXTURE_SCALE);
                 vertices.push(texture_coords[1]);
+
+                vertices.push(0.0);
             }
         }
     }
@@ -369,6 +378,8 @@ impl Level {
                     vertices.push(background[i * VERTEX_LEN + 4]);
                 }
             }
+
+            vertices.push(0.0);
         }
     }
 
@@ -422,7 +433,7 @@ impl Level {
                 3,
                 gl::FLOAT,
                 gl::FALSE,
-                (VERTEX_LEN * size_of::<f32>()) as i32,
+                (STRIDE * size_of::<f32>()) as i32,
                 0 as *const c_void,
             );
             gl::EnableVertexAttribArray(0);
@@ -443,10 +454,31 @@ impl Level {
                 2,
                 gl::FLOAT,
                 gl::FALSE,
-                (VERTEX_LEN * size_of::<f32>()) as i32,
+                (STRIDE * size_of::<f32>()) as i32,
                 (3 * size_of::<f32>()) as *const c_void,
             );
             gl::EnableVertexAttribArray(1);
+
+            gl::BindBuffer(
+                gl::ARRAY_BUFFER,
+                self.level_chunk_texture_coordinates
+                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+            );
+            gl::BufferData(
+                gl::ARRAY_BUFFER,
+                (vertices.len() * size_of::<f32>()) as isize,
+                vertices.as_ptr() as *const c_void,
+                gl::STATIC_DRAW,
+            );
+            gl::VertexAttribPointer(
+                2,
+                1,
+                gl::FLOAT,
+                gl::FALSE,
+                (STRIDE * size_of::<f32>()) as i32,
+                (5 * size_of::<f32>()) as *const c_void,
+            );
+            gl::EnableVertexAttribArray(2);
         }
     }
 

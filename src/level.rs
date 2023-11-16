@@ -89,7 +89,7 @@ impl Level {
                 ((w / CHUNK_SIZE) as usize + 1)
                     * ((h / CHUNK_SIZE) as usize + 1)
             ],
-            level_chunk_animation: vec! [
+            level_chunk_animation: vec![
                 0;
                 ((w / CHUNK_SIZE) as usize + 1)
                     * ((h / CHUNK_SIZE) as usize + 1)

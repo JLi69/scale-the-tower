@@ -1,4 +1,4 @@
-use super::{player::PLAYER_CLIMB_SPEED, GameScreen, State};
+use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, State};
 use crate::level::Tile;
 
 const MAX_SAFE_FALL_SPEED: f32 = 14.0;
@@ -35,9 +35,21 @@ impl State {
         self.player.update_animation_state();
         self.level.update_interactive_tiles(&mut self.player);
         self.player.damage_cooldown -= dt;
+    }
 
+    pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {
         if self.player.player_health <= 0 {
             self.game_screen = GameScreen::GameOver;
+
+            //Check if the player got a new high score and if they
+            //did, write that highscore to a file
+            if hiscore::is_new_highscore(self.player.score, highscores) {
+                hiscore::add_highscore(self.player.score, highscores);
+                hiscore::write_highscores("hiscores", highscores);
+                self.new_highscore = true;
+            } else {
+                self.new_highscore = false;
+            }
         }
     }
 }

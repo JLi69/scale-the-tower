@@ -104,6 +104,7 @@ pub enum ButtonAction {
     QuitGame,
     GotoMainMenu,
     StartGame,
+    GotoHighScores,
 }
 
 pub struct MenuElement {
@@ -206,15 +207,33 @@ impl Menu {
             buttons: vec![
                 //Start game
                 MenuElement::button(b"Start!", 0.0, -0.0, 16.0, ButtonAction::StartGame),
-                //Quit game
-                MenuElement::button(b"Quit", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+                //Go to highscores
+                MenuElement::button(
+                    b"High Scores",
+                    0.0,
+                    -60.0,
+                    16.0,
+                    ButtonAction::GotoHighScores,
+                ),
                 //Go to credits
-                MenuElement::button(b"Credits", 0.0, -60.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Credits", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+                //Quit game
+                MenuElement::button(b"Quit", 0.0, -180.0, 16.0, ButtonAction::QuitGame),
             ],
             text: vec![
                 MenuElement::text(b"Scale the Tower", 0.0, 180.0, 22.0),
                 MenuElement::text(b"Created for the 2023 Game Off Jam", 0.0, 80.0, 8.0),
             ],
+        }
+    }
+
+    pub fn create_hiscore_menu() -> Self {
+        Self {
+            buttons: vec![
+                //Go to main menu
+                MenuElement::button(b"Main Menu", 0.0, -192.0, 16.0, ButtonAction::GotoMainMenu),
+            ],
+            text: vec![MenuElement::text(b"High Scores", 0.0, 192.0, 24.0)],
         }
     }
 
@@ -237,9 +256,9 @@ impl Menu {
         Self {
             buttons: vec![
                 //Go to main menu
-                MenuElement::button(b"Main Menu", 0.0, 0.0, 16.0, ButtonAction::GotoMainMenu),
+                MenuElement::button(b"Main Menu", 0.0, -24.0, 16.0, ButtonAction::GotoMainMenu),
                 //Quit game
-                MenuElement::button(b"Quit", 0.0, -48.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"Quit", 0.0, -72.0, 16.0, ButtonAction::QuitGame),
             ],
             text: vec![MenuElement::text(b"Game Over!", 0.0, 96.0, 24.0)],
         }

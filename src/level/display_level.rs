@@ -86,7 +86,7 @@ impl Level {
 
             if self.get_tile(x, y) == Tile::Lava {
                 vertices.push(1.0 / TEXTURE_SCALE);
-            } else { 
+            } else {
                 vertices.push(0.0);
             }
         }

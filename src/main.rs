@@ -11,7 +11,7 @@ mod sprite;
 mod ui;
 
 use cgmath::Matrix4;
-use game::{GameScreen, State};
+use game::{hiscore, GameScreen, State};
 use glfw::Context;
 use level::room_template;
 use level::Level;
@@ -103,6 +103,7 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
             std::process::exit(0);
         }
         ui::ButtonAction::GotoMainMenu => state.game_screen = GameScreen::MainMenu,
+        ui::ButtonAction::GotoHighScores => state.game_screen = GameScreen::HighScores,
         ui::ButtonAction::StartGame => {
             let persp_matrix = state.perspective;
             *state = State::starting_state();
@@ -171,9 +172,12 @@ fn main() -> Result<(), String> {
     let pause_menu = ui::Menu::create_pause_menu();
     let main_menu = ui::Menu::create_main_menu();
     let gameover_menu = ui::Menu::create_gameover_menu();
+    let hiscore_menu = ui::Menu::create_hiscore_menu();
 
     let mut dt = 0.0f32;
     let mut tile_animation_timer = 0.0f32;
+    let mut highscores = hiscore::load_highscores("hiscores");
+
     while !window.should_close() {
         let start = Instant::now();
         process_events(&mut window, &events, &mut state);
@@ -201,7 +205,7 @@ fn main() -> Result<(), String> {
         sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
 
         match state.game_screen {
-            GameScreen::MainMenu => {}
+            GameScreen::MainMenu | GameScreen::HighScores => {}
             GameScreen::Game | GameScreen::Paused => {
                 //Display level
                 tile_textures.bind();
@@ -256,6 +260,10 @@ fn main() -> Result<(), String> {
             GameScreen::MainMenu => {
                 main_menu.display(&rect_vao, &text_shader, &win_info);
             }
+            GameScreen::HighScores => {
+                hiscore::display_hiscores(&rect_vao, &text_shader, &highscores);
+                hiscore_menu.display(&rect_vao, &text_shader, &win_info);
+            }
             GameScreen::Game => {
                 state
                     .player
@@ -298,6 +306,17 @@ fn main() -> Result<(), String> {
                     8.0,
                 );
 
+                if state.new_highscore {
+                    ui::display_ascii_text_centered(
+                        &rect_vao,
+                        &text_shader,
+                        b"New High Score!",
+                        0.0,
+                        24.0,
+                        8.0,
+                    );
+                }
+
                 gameover_menu.display(&rect_vao, &text_shader, &win_info);
             }
         }
@@ -311,6 +330,7 @@ fn main() -> Result<(), String> {
         if left_mouse_held && !state.left_mouse_held {
             let button_action = match state.game_screen {
                 GameScreen::Game => None,
+                GameScreen::HighScores => hiscore_menu.get_clicked_button_action(&win_info),
                 GameScreen::Paused => pause_menu.get_clicked_button_action(&win_info),
                 GameScreen::GameOver => gameover_menu.get_clicked_button_action(&win_info),
                 GameScreen::MainMenu => main_menu.get_clicked_button_action(&win_info),
@@ -325,12 +345,13 @@ fn main() -> Result<(), String> {
 
         if state.game_screen == GameScreen::Game {
             state.update_game_screen(dt);
+            state.check_gameover(&mut highscores);
         }
 
         //Update the animation timer
         tile_animation_timer += dt;
         if tile_animation_timer > 2.0 {
-            tile_animation_timer = 0.0; 
+            tile_animation_timer = 0.0;
         }
 
         gfx::output_gl_errors();
@@ -340,6 +361,8 @@ fn main() -> Result<(), String> {
         let end = Instant::now();
         dt = end.duration_since(start).as_secs_f32();
     }
+
+    hiscore::write_highscores("hiscores", &highscores);
 
     Ok(())
 }

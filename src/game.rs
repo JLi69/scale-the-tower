@@ -2,6 +2,7 @@ use crate::{Level, Sprite};
 use cgmath::{Deg, Matrix4, Vector2};
 
 pub mod display;
+pub mod hiscore;
 pub mod player;
 pub mod update_game;
 
@@ -17,6 +18,7 @@ pub enum GameScreen {
     Game,
     Paused,
     GameOver,
+    HighScores,
 }
 
 pub struct Player {
@@ -68,6 +70,7 @@ pub struct State {
     pub game_screen: GameScreen,
     pub level: Level,
     pub left_mouse_held: bool,
+    pub new_highscore: bool,
 }
 
 impl State {
@@ -78,6 +81,7 @@ impl State {
             game_screen: GameScreen::MainMenu,
             level: Level::new(1, 1),
             left_mouse_held: false,
+            new_highscore: false,
         }
     }
 

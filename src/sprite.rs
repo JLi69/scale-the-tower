@@ -1,6 +1,8 @@
 use crate::level::{Level, Tile};
 use cgmath::{vec2, Vector2};
 
+pub mod enemy;
+
 pub struct Sprite {
     pub position: Vector2<f32>,
     pub dimensions: Vector2<f32>,
@@ -101,5 +103,31 @@ impl Sprite {
         self.animation_duration = duration;
         self.start_frame = start_frame;
         self.end_frame = end_frame;
+    }
+
+    //Uncollide the sprite with another sprite in the x axis
+    pub fn uncollide_x(&mut self, sprite: &Sprite) {
+        if self.intersecting(sprite) {
+            if self.position.x > sprite.position.x {
+                self.position.x =
+                    sprite.position.x + sprite.dimensions.x / 2.0 + self.dimensions.x / 2.0 + 0.01;
+            } else if self.position.x < sprite.position.x {
+                self.position.x =
+                    sprite.position.x - sprite.dimensions.x / 2.0 - self.dimensions.x / 2.0 - 0.01;
+            }
+        }
+    }
+
+    //Uncollide the sprite with another sprite in the y axis
+    pub fn uncollide_y(&mut self, sprite: &Sprite) {
+        if self.intersecting(sprite) {
+            if self.position.y > sprite.position.y {
+                self.position.y =
+                    sprite.position.y + sprite.dimensions.y / 2.0 + self.dimensions.y / 2.0;
+            } else if self.position.y < sprite.position.y {
+                self.position.y =
+                    sprite.position.y - sprite.dimensions.y / 2.0 - self.dimensions.y / 2.0;
+            }
+        }
     }
 }

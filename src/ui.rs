@@ -233,7 +233,7 @@ impl Menu {
                 //Go to main menu
                 MenuElement::button(b"Main Menu", 0.0, -192.0, 16.0, ButtonAction::GotoMainMenu),
             ],
-            text: vec![MenuElement::text(b"High Scores", 0.0, 192.0, 24.0)],
+            text: vec![MenuElement::text(b"High Scores", 0.0, 192.0, 16.0)],
         }
     }
 

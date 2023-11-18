@@ -1,3 +1,5 @@
+use crate::sprite::enemy::{Enemy, EnemyType};
+
 use super::{
     room_template::RoomTemplate, room_template::SpawnType, InteractiveTile, InteractiveTileSprite,
     Level, Tile, ROOM_SIZE,
@@ -5,6 +7,16 @@ use super::{
 use rand::{rngs::ThreadRng, Rng};
 
 impl Level {
+    fn empty_room(&mut self, room_x: u32, room_y: u32) {
+        for x in 0..ROOM_SIZE {
+            for y in 0..ROOM_SIZE {
+                let tile_x = x + room_x * (ROOM_SIZE + 1) + 1;
+                let tile_y = y + room_y * (ROOM_SIZE + 1) + 1;
+                self.set_tile(tile_x, tile_y, Tile::Air);
+            }
+        }
+    }
+
     fn generate_room_from_template(
         &mut self,
         templates: &Vec<RoomTemplate>,
@@ -52,7 +64,19 @@ impl Level {
                         tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                     });
                 }
-                _ => {}
+                SpawnType::MaybeEnemy => {
+                    //Spawn enemy
+                }
+                SpawnType::Enemy => {
+                    //Spawn enemy
+                    self.enemies.push(Enemy::new(
+                        (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                        (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        1.0,
+                        1.0,
+                        EnemyType::Slime,
+                    ));
+                }
             }
         }
     }
@@ -64,7 +88,11 @@ impl Level {
         let mut rng = rand::thread_rng();
 
         for room_y in 0..floors {
-            level.generate_room_from_template(template_list, &mut rng, 0, room_y);
+            if room_y < floors - 1 {
+                level.generate_room_from_template(template_list, &mut rng, 0, room_y);
+            } else {
+                level.empty_room(0, room_y);
+            }
 
             ((ROOM_SIZE / 2 - 1)..(ROOM_SIZE / 2 + 3))
                 .for_each(|x| level.set_tile(x, (room_y + 1) * (ROOM_SIZE + 1), Tile::Air));

@@ -1,3 +1,5 @@
+use crate::sprite::enemy::Enemy;
+
 pub mod display_level;
 pub mod generate_level;
 pub mod room_template;
@@ -62,6 +64,8 @@ pub struct Level {
     level_chunk_texture_coordinates: Vec<u32>,
     level_chunk_animation: Vec<u32>,
     level_chunk_vertex_count: Vec<u32>,
+
+    enemies: Vec<Enemy>,
 }
 
 impl Level {
@@ -99,6 +103,8 @@ impl Level {
                 ((w / CHUNK_SIZE) as usize + 1)
                     * ((h / CHUNK_SIZE) as usize + 1)
             ],
+
+            enemies: vec![],
         }
     }
 

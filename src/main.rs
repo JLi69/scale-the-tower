@@ -225,6 +225,10 @@ fn main() -> Result<(), String> {
                     &sprite_shader,
                     &state.player_position(),
                 );
+                rect_vao.bind();
+                state
+                    .level
+                    .display_enemies(&rect_vao, &sprite_shader, &state.player_position());
             }
             GameScreen::GameOver => {
                 //Display level
@@ -241,6 +245,10 @@ fn main() -> Result<(), String> {
                     &sprite_shader,
                     &state.player_position(),
                 );
+                rect_vao.bind();
+                state
+                    .level
+                    .display_enemies(&rect_vao, &sprite_shader, &state.player_position());
             }
         }
 
@@ -347,6 +355,8 @@ fn main() -> Result<(), String> {
         if state.game_screen == GameScreen::Game {
             state.update_game_screen(dt);
             state.check_gameover(&mut highscores);
+        } else if state.game_screen == GameScreen::GameOver {
+            state.level.update_enemies(dt);
         }
 
         //Update the animation timer

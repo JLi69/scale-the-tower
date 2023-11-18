@@ -49,6 +49,8 @@ fn ascii_to_spawn(ch: u8) -> Option<SpawnType> {
     match ch {
         b'g' => Some(SpawnType::MaybeTreasure),
         b'G' => Some(SpawnType::Treasure),
+        b'e' => Some(SpawnType::MaybeEnemy),
+        b'E' => Some(SpawnType::Enemy),
         _ => None,
     }
 }

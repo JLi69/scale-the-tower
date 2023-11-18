@@ -35,6 +35,9 @@ impl State {
         self.player.update_animation_state();
         self.level.update_interactive_tiles(&mut self.player);
         self.player.damage_cooldown -= dt;
+
+        //Update enemies
+        self.level.update_enemies(dt);
     }
 
     pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {

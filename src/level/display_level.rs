@@ -576,4 +576,19 @@ impl Level {
             }
         }
     }
+
+    pub fn display_enemies(
+        &self,
+        rect_vao: &VertexArrayObject,
+        shader_program: &ShaderProgram,
+        player_position: &Vector2<f32>,
+    ) {
+        for enemy in &self.enemies {
+            if (enemy.sprite.position.y - player_position.y).abs() > SPRITE_RENDER_DISTANCE {
+                continue;
+            }
+
+            enemy.display(rect_vao, shader_program);
+        }
+    }
 }

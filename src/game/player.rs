@@ -11,38 +11,15 @@ pub const PLAYER_JUMP_SPEED: f32 = 9.0;
 pub const PLAYER_CLIMB_SPEED: f32 = 4.0;
 
 impl Player {
-    //Uncollide the sprite with another sprite in the x axis
-    fn uncollide_x(&mut self, sprite: &Sprite) {
-        if self.player_spr.intersecting(sprite) {
-            if self.player_spr.position.x > sprite.position.x {
-                self.player_spr.position.x = sprite.position.x
-                    + sprite.dimensions.x / 2.0
-                    + self.player_spr.dimensions.x / 2.0
-                    + 0.01;
-            } else if self.player_spr.position.x < sprite.position.x {
-                self.player_spr.position.x = sprite.position.x
-                    - sprite.dimensions.x / 2.0
-                    - self.player_spr.dimensions.x / 2.0
-                    - 0.01;
-            }
-        }
-    }
-
-    //Uncollide the sprite with another sprite in the y axis
-    fn uncollide_y(&mut self, sprite: &Sprite) {
+    //Handle collision in the y axis
+    fn handle_collision_y(&mut self, sprite: &Sprite) {
         if self.player_spr.intersecting(sprite) {
             if self.player_spr.position.y > sprite.position.y {
-                self.player_spr.position.y = sprite.position.y
-                    + sprite.dimensions.y / 2.0
-                    + self.player_spr.dimensions.y / 2.0;
                 //If we are supported by a tile then stop falling
                 self.falling = false;
                 self.player_spr.velocity.y = -0.01;
                 self.climbing = false;
             } else if self.player_spr.position.y < sprite.position.y {
-                self.player_spr.position.y = sprite.position.y
-                    - sprite.dimensions.y / 2.0
-                    - self.player_spr.dimensions.y / 2.0;
                 //Set y velocity to 0 so we don't "stick" to the tile if the
                 //player decides to hold down the jump key
                 self.player_spr.velocity.y = 0.0;
@@ -90,7 +67,7 @@ impl Player {
 
                 if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
-                    self.uncollide_x(&hitbox);
+                    self.player_spr.uncollide_x(&hitbox);
                 }
             }
         }
@@ -135,7 +112,8 @@ impl Player {
 
                 if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
-                    self.uncollide_y(&hitbox);
+                    self.handle_collision_y(&hitbox);
+                    self.player_spr.uncollide_y(&hitbox);
                 } else if level.get_tile(x as u32, y as u32) == Tile::Ladder {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     if self.player_spr.intersecting(&hitbox) {
@@ -147,8 +125,11 @@ impl Player {
         }
 
         //Clamp the player's position
-        self.player_spr.position.x = 
-            self.player_spr.position.x.clamp(0.0, ROOM_SIZE as f32 + 1.0);
+        self.player_spr.position.x = self
+            .player_spr
+            .position
+            .x
+            .clamp(0.0, ROOM_SIZE as f32 + 1.0);
     }
 
     //Updates the animation state of the player based on various conditions

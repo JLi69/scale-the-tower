@@ -1,5 +1,7 @@
-use super::{Player, ATTACK_TIMER};
-use crate::{gfx::VertexArrayObject, shader::ShaderProgram, ui};
+use super::{Player, State, ATTACK_TIMER};
+use crate::{
+    gfx::VertexArrayObject, level::display_level::SPRITE_RENDER_DISTANCE, shader::ShaderProgram, ui,
+};
 use cgmath::{Matrix4, Rad};
 
 impl Player {
@@ -87,5 +89,17 @@ impl Player {
             -win_w as f32 / 2.0 + 24.0,
             win_h as f32 / 2.0 - 24.0,
         );
+    }
+}
+
+impl State {
+    pub fn display_enemies(&self, rect_vao: &VertexArrayObject, shader_program: &ShaderProgram) {
+        for enemy in &self.enemies {
+            if (enemy.sprite.position.y - self.player_position().y).abs() > SPRITE_RENDER_DISTANCE {
+                continue;
+            }
+
+            enemy.display(rect_vao, shader_program);
+        }
     }
 }

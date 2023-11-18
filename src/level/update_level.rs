@@ -31,10 +31,4 @@ impl Level {
             self.interactive_tiles.remove(i);
         }
     }
-
-    pub fn update_enemies(&mut self, dt: f32) {
-        for enemy in &mut self.enemies {
-            enemy.sprite.update_animation_frame(dt);
-        }
-    }
 }

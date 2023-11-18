@@ -1,4 +1,4 @@
-use crate::{Level, Sprite};
+use crate::{sprite::enemy::Enemy, Level, Sprite};
 use cgmath::{Deg, Matrix4, Vector2};
 
 pub mod display;
@@ -107,6 +107,7 @@ pub struct State {
     pub level: Level,
     pub left_mouse_held: bool,
     pub new_highscore: bool,
+    pub enemies: Vec<Enemy>,
 }
 
 impl State {
@@ -118,6 +119,7 @@ impl State {
             level: Level::new(1, 1),
             left_mouse_held: false,
             new_highscore: false,
+            enemies: vec![],
         }
     }
 

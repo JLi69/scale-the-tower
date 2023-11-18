@@ -114,7 +114,9 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
             state.game_screen = GameScreen::Game;
             //Attempt to load room templates
             let room_templates = room_template::load_room_templates("assets/room_templates");
-            state.level = Level::generate_level(&room_templates);
+            let (level, enemies) = Level::generate_level(&room_templates);
+            state.level = level;
+            state.enemies = enemies;
             state.level.build_chunks();
         }
     }
@@ -228,9 +230,7 @@ fn main() -> Result<(), String> {
                     &state.player_position(),
                 );
                 rect_vao.bind();
-                state
-                    .level
-                    .display_enemies(&rect_vao, &sprite_shader, &state.player_position());
+                state.display_enemies(&rect_vao, &sprite_shader);
             }
             GameScreen::GameOver => {
                 //Display level
@@ -248,9 +248,7 @@ fn main() -> Result<(), String> {
                     &state.player_position(),
                 );
                 rect_vao.bind();
-                state
-                    .level
-                    .display_enemies(&rect_vao, &sprite_shader, &state.player_position());
+                state.display_enemies(&rect_vao, &sprite_shader);
             }
         }
 
@@ -358,7 +356,7 @@ fn main() -> Result<(), String> {
             state.update_game_screen(dt);
             state.check_gameover(&mut highscores);
         } else if state.game_screen == GameScreen::GameOver {
-            state.level.update_enemies(dt);
+            state.update_enemies(dt);
         }
 
         //Update the animation timer

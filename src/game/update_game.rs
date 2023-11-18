@@ -4,6 +4,13 @@ use crate::level::Tile;
 const MAX_SAFE_FALL_SPEED: f32 = 14.0;
 
 impl State {
+    pub fn update_enemies(&mut self, dt: f32) {
+        for enemy in &mut self.enemies {
+            enemy.sprite.update_animation_frame(dt);
+            enemy.update(dt, &self.level);
+        }
+    }
+
     pub fn update_game_screen(&mut self, dt: f32) {
         //Update the player
         let falling = self.player.falling();
@@ -37,7 +44,7 @@ impl State {
         self.player.damage_cooldown -= dt;
 
         //Update enemies
-        self.level.update_enemies(dt);
+        self.update_enemies(dt);
     }
 
     pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {

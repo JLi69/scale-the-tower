@@ -19,26 +19,21 @@ impl Level {
 
     fn generate_room_from_template(
         &mut self,
-        templates: &Vec<RoomTemplate>,
+        enemies: &mut Vec<Enemy>,
+        template: &RoomTemplate,
         rng: &mut ThreadRng,
         room_x: u32,
         room_y: u32,
     ) {
-        if templates.is_empty() {
-            return;
-        }
-
-        let random_template = &templates[rng.gen::<usize>() % templates.len()];
-
         for x in 0..ROOM_SIZE {
             for y in 0..ROOM_SIZE {
                 let tile_x = x + room_x * (ROOM_SIZE + 1) + 1;
                 let tile_y = y + room_y * (ROOM_SIZE + 1) + 1;
-                self.set_tile(tile_x, tile_y, random_template.get_tile(x, y));
+                self.set_tile(tile_x, tile_y, template.get_tile(x, y));
             }
         }
 
-        for spawn_location in random_template.get_spawns() {
+        for spawn_location in template.get_spawns() {
             match spawn_location.spawn_type {
                 SpawnType::MaybeTreasure => {
                     let rand_number = rng.gen::<u32>() % 100;
@@ -68,28 +63,44 @@ impl Level {
                     //Spawn enemy
                 }
                 SpawnType::Enemy => {
+                    let flipped = rng.gen::<bool>();
                     //Spawn enemy
-                    self.enemies.push(Enemy::new(
+                    enemies.push(Enemy::new(
                         (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                         (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                        1.0,
+                        0.9,
                         1.0,
                         EnemyType::Slime,
+                        flipped,
                     ));
                 }
             }
         }
     }
 
-    pub fn generate_level(template_list: &Vec<RoomTemplate>) -> Self {
+    pub fn generate_level(template_list: &Vec<RoomTemplate>) -> (Self, Vec<Enemy>) {
         let floors = 48;
         let mut level = Self::new(18, ROOM_SIZE * floors + floors + 1);
+        let mut enemies = Vec::<Enemy>::new();
 
         let mut rng = rand::thread_rng();
 
         for room_y in 0..floors {
+            if template_list.is_empty() {
+                level.empty_room(0, room_y);
+                continue;
+            }
+
+            let random_template = &template_list[rng.gen::<usize>() % template_list.len()];
+
             if room_y < floors - 1 {
-                level.generate_room_from_template(template_list, &mut rng, 0, room_y);
+                level.generate_room_from_template(
+                    &mut enemies,
+                    random_template,
+                    &mut rng,
+                    0,
+                    room_y,
+                );
             } else {
                 level.empty_room(0, room_y);
             }
@@ -98,6 +109,6 @@ impl Level {
                 .for_each(|x| level.set_tile(x, (room_y + 1) * (ROOM_SIZE + 1), Tile::Air));
         }
 
-        level
+        (level, enemies)
     }
 }

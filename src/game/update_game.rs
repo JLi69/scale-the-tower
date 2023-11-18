@@ -3,12 +3,18 @@ use crate::level::Tile;
 
 const MAX_SAFE_FALL_SPEED: f32 = 14.0;
 const BOUNCE_SPEED: f32 = -0.5;
+const MAX_UPDATE_DISTANCE: f32 = 16.0;
 
 impl State {
     pub fn update_enemies(&mut self, dt: f32) {
+        let player_pos = self.player_position();
         for i in 0..self.enemies.len() {
+            if (self.enemies[i].sprite.position.y - player_pos.y).abs() > MAX_UPDATE_DISTANCE {
+                continue;
+            }
+
             self.enemies[i].sprite.update_animation_frame(dt);
-            self.enemies[i].update(dt, &self.level);
+            self.enemies[i].update(dt, &self.level, &player_pos);
 
             //Melee attack
             if let Some(hitbox) = self.player.attack_hitbox() {
@@ -18,12 +24,16 @@ impl State {
             }
 
             //Goomba stomp the enemy
-            if self.player.player_spr.intersecting(&self.enemies[i].sprite) &&
-               self.player_position().y > self.enemies[i].sprite.position.y &&
-               self.player_velocity().y < -PLAYER_CLIMB_SPEED {
+            if self.player.player_spr.intersecting(&self.enemies[i].sprite)
+                && self.player_position().y > self.enemies[i].sprite.position.y
+                && self.player_velocity().y < -PLAYER_CLIMB_SPEED
+            {
                 self.enemies[i].apply_damage(2);
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
-            } 
+            } else if self.player.player_spr.intersecting(&self.enemies[i].sprite) {
+                self.player.apply_damage(self.enemies[i].get_damage());
+                self.enemies[i].reset_attack_cooldown();
+            }
         }
 
         let mut stop = false;
@@ -34,12 +44,12 @@ impl State {
                 if enemy.health <= 0 {
                     self.player.score += enemy.score();
                     stop = false;
-                    index = Some(i); 
+                    index = Some(i);
                 }
             }
 
             if let Some(i) = index {
-                self.enemies.remove(i); 
+                self.enemies.remove(i);
             }
         }
     }

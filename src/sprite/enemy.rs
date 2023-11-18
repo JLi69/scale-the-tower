@@ -1,12 +1,11 @@
 use super::Sprite;
 use crate::{
-    game::GRAVITY, 
-    gfx::VertexArrayObject, 
-    level::transparent, 
-    level::Level, shader::ShaderProgram,
-    game::DAMAGE_COOLDOWN,
+    game::DAMAGE_COOLDOWN, game::GRAVITY, gfx::VertexArrayObject, level::transparent, level::Level,
+    shader::ShaderProgram,
 };
-use cgmath::{vec2, Matrix4};
+use cgmath::{vec2, Matrix4, Vector2};
+
+const ENEMY_ATTACK_COOLDOWN: f32 = 1.0;
 
 pub enum EnemyType {
     Slime,
@@ -18,6 +17,7 @@ pub struct Enemy {
     pub health: i32,
     falling: bool,
     damage_cooldown: f32,
+    attack_cooldown: f32,
 }
 
 impl Enemy {
@@ -34,7 +34,7 @@ impl Enemy {
         }
 
         let enemy_hp = match enemy {
-            EnemyType::Slime => 1, 
+            EnemyType::Slime => 1,
         };
 
         spr.flipped = flipped;
@@ -48,6 +48,7 @@ impl Enemy {
             health: enemy_hp,
             falling: false,
             damage_cooldown: 0.0,
+            attack_cooldown: 0.0,
         }
     }
 
@@ -93,8 +94,12 @@ impl Enemy {
         }
     }
 
-    fn update_slime(&mut self, dt: f32, level: &Level) {
-        self.sprite.position.x += self.sprite.velocity.x * dt;
+    fn update_slime(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
+        if (player_pos.x - self.sprite.position.x).abs() > 0.7
+            || (player_pos.y - self.sprite.position.y).abs() > 0.2
+        {
+            self.sprite.position.x += self.sprite.velocity.x * dt;
+        }
         //Handle collision
         let top_left = vec2(self.sprite.position.x, self.sprite.position.y)
             - vec2(
@@ -158,15 +163,20 @@ impl Enemy {
         }
 
         self.damage_cooldown -= dt;
+        self.attack_cooldown -= dt;
     }
 
-    pub fn update(&mut self, dt: f32, level: &Level) {
+    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
         match self.enemy_type {
-            EnemyType::Slime => self.update_slime(dt, level),
+            EnemyType::Slime => self.update_slime(dt, level, player_pos),
         }
     }
 
     pub fn get_damage(&self) -> i32 {
+        if self.attack_cooldown > 0.0 {
+            return 0;
+        }
+
         match self.enemy_type {
             EnemyType::Slime => 1,
         }
@@ -181,7 +191,13 @@ impl Enemy {
 
     pub fn score(&self) -> u32 {
         match self.enemy_type {
-            EnemyType::Slime => 10, 
+            EnemyType::Slime => 10,
+        }
+    }
+
+    pub fn reset_attack_cooldown(&mut self) {
+        if self.attack_cooldown < 0.0 {
+            self.attack_cooldown = ENEMY_ATTACK_COOLDOWN;
         }
     }
 }

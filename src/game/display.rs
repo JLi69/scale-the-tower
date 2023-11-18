@@ -1,6 +1,6 @@
-use super::Player;
+use super::{Player, ATTACK_TIMER};
 use crate::{gfx::VertexArrayObject, shader::ShaderProgram, ui};
-use cgmath::Matrix4;
+use cgmath::{Matrix4, Rad};
 
 impl Player {
     pub fn display_player(&self, rect_vao: &VertexArrayObject, sprite_shader: &ShaderProgram) {
@@ -18,6 +18,41 @@ impl Player {
             0.0,
         );
         rect_vao.draw_arrays();
+
+        //Attack animation
+        let attack_hitbox = self.attack_hitbox();
+        sprite_shader.uniform_bool("uFlipped", false);
+        if let Some(hitbox) = attack_hitbox {
+            let flip_matrix = if self.player_spr.flipped {
+                Matrix4::from_angle_y(Rad(std::f32::consts::PI))
+            } else {
+                Matrix4::from_angle_y(Rad(0.0f32))
+            };
+
+            let transform_matrix =
+                Matrix4::from_translation(cgmath::vec3(hitbox.position.x, hitbox.position.y, 0.0))
+                    * Matrix4::from_scale(0.35)
+                    * flip_matrix
+                    * Matrix4::from_translation(cgmath::vec3(-1.0, -1.0, 0.0))
+                    * Matrix4::from_angle_z(Rad(((std::f32::consts::PI / 2.0
+                        * self.attack_timer
+                        / ATTACK_TIMER)
+                        * 1.8
+                        - 0.8 * std::f32::consts::PI / 2.0)
+                        .max(0.0)))
+                    * Matrix4::from_translation(cgmath::vec3(1.0, 0.0, 0.0))
+                    * Matrix4::from_angle_z(Rad(-std::f32::consts::PI / 4.0));
+            sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);
+            sprite_shader.uniform_vec2f("uTexOffset", 0.0, 3.0 / 8.0);
+
+            unsafe {
+                gl::Disable(gl::CULL_FACE);
+            }
+            rect_vao.draw_arrays();
+            unsafe {
+                gl::Enable(gl::CULL_FACE);
+            }
+        }
     }
 
     pub fn display_player_stats(

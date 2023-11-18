@@ -11,6 +11,8 @@ pub mod update_game;
 pub const GRAVITY: f32 = 16.0;
 pub const DEFAULT_PLAYER_HEALTH: i32 = 4;
 pub const DAMAGE_COOLDOWN: f32 = 0.3;
+pub const ATTACK_COOLDOWN: f32 = 0.5;
+pub const ATTACK_TIMER: f32 = 0.2;
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum GameScreen {
@@ -29,6 +31,8 @@ pub struct Player {
     pub damage_cooldown: f32,
     falling: bool,
     climbing: bool,
+    attack_cooldown: f32,
+    attack_timer: f32,
 }
 
 impl Player {
@@ -41,6 +45,8 @@ impl Player {
             damage_cooldown: 0.0,
             falling: false,
             climbing: false,
+            attack_cooldown: 0.0,
+            attack_timer: 0.0,
         }
     }
 
@@ -59,6 +65,36 @@ impl Player {
     //Returns if the player is climbing
     pub fn climbing(&self) -> bool {
         self.climbing
+    }
+
+    pub fn attack(&mut self) {
+        if self.attack_cooldown <= 0.0 {
+            self.attack_cooldown = ATTACK_COOLDOWN;
+            self.attack_timer = ATTACK_TIMER;
+        }
+    }
+
+    //Returns None if the attack cooldown isn't at 0 yet
+    pub fn attack_hitbox(&self) -> Option<Sprite> {
+        if self.attack_timer < 0.0 {
+            return None;
+        }
+
+        if self.player_spr.flipped {
+            Some(Sprite::new(
+                self.player_spr.position.x - 0.8,
+                self.player_spr.position.y + 0.3,
+                1.0,
+                1.0,
+            ))
+        } else {
+            Some(Sprite::new(
+                self.player_spr.position.x + 0.8,
+                self.player_spr.position.y + 0.3,
+                1.0,
+                1.0,
+            ))
+        }
     }
 }
 

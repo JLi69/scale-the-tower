@@ -130,6 +130,9 @@ impl Player {
             .position
             .x
             .clamp(0.0, ROOM_SIZE as f32 + 1.0);
+
+        self.attack_timer -= dt;
+        self.attack_cooldown -= dt;
     }
 
     //Updates the animation state of the player based on various conditions

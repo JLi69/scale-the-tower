@@ -66,6 +66,8 @@ fn handle_key_input(
             state.set_player_velocity_x(-game::player::PLAYER_SPEED);
         } else if key == glfw::Key::Right {
             state.set_player_velocity_x(game::player::PLAYER_SPEED);
+        } else if key == glfw::Key::Space {
+            state.player.attack();
         }
     } else if action == glfw::Action::Release {
         if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {

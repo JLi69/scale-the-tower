@@ -215,8 +215,8 @@ impl Menu {
                     16.0,
                     ButtonAction::GotoHighScores,
                 ),
-                //Go to credits
-                MenuElement::button(b"Credits", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+                //Go to about page
+                MenuElement::button(b"About", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
                 //Quit game
                 MenuElement::button(b"Quit", 0.0, -180.0, 16.0, ButtonAction::QuitGame),
             ],

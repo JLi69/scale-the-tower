@@ -1,6 +1,10 @@
 use super::Sprite;
 use crate::{
-    game::GRAVITY, gfx::VertexArrayObject, level::transparent, level::Level, shader::ShaderProgram,
+    game::GRAVITY, 
+    gfx::VertexArrayObject, 
+    level::transparent, 
+    level::Level, shader::ShaderProgram,
+    game::DAMAGE_COOLDOWN,
 };
 use cgmath::{vec2, Matrix4};
 
@@ -11,7 +15,9 @@ pub enum EnemyType {
 pub struct Enemy {
     pub sprite: Sprite,
     pub enemy_type: EnemyType,
+    pub health: i32,
     falling: bool,
+    damage_cooldown: f32,
 }
 
 impl Enemy {
@@ -27,6 +33,10 @@ impl Enemy {
             EnemyType::Slime => spr.velocity.x = 0.5,
         }
 
+        let enemy_hp = match enemy {
+            EnemyType::Slime => 1, 
+        };
+
         spr.flipped = flipped;
         if spr.flipped {
             spr.velocity.x *= -1.0;
@@ -35,7 +45,9 @@ impl Enemy {
         Self {
             sprite: spr,
             enemy_type: enemy,
+            health: enemy_hp,
             falling: false,
+            damage_cooldown: 0.0,
         }
     }
 
@@ -144,6 +156,8 @@ impl Enemy {
                 }
             }
         }
+
+        self.damage_cooldown -= dt;
     }
 
     pub fn update(&mut self, dt: f32, level: &Level) {
@@ -154,7 +168,20 @@ impl Enemy {
 
     pub fn get_damage(&self) -> i32 {
         match self.enemy_type {
-            EnemyType::Slime => 1, 
+            EnemyType::Slime => 1,
+        }
+    }
+
+    pub fn apply_damage(&mut self, amount: i32) {
+        if self.damage_cooldown <= 0.0 {
+            self.health -= amount;
+            self.damage_cooldown = DAMAGE_COOLDOWN;
+        }
+    }
+
+    pub fn score(&self) -> u32 {
+        match self.enemy_type {
+            EnemyType::Slime => 10, 
         }
     }
 }

@@ -2,12 +2,45 @@ use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, State};
 use crate::level::Tile;
 
 const MAX_SAFE_FALL_SPEED: f32 = 14.0;
+const BOUNCE_SPEED: f32 = -0.5;
 
 impl State {
     pub fn update_enemies(&mut self, dt: f32) {
-        for enemy in &mut self.enemies {
-            enemy.sprite.update_animation_frame(dt);
-            enemy.update(dt, &self.level);
+        for i in 0..self.enemies.len() {
+            self.enemies[i].sprite.update_animation_frame(dt);
+            self.enemies[i].update(dt, &self.level);
+
+            //Melee attack
+            if let Some(hitbox) = self.player.attack_hitbox() {
+                if hitbox.intersecting(&self.enemies[i].sprite) {
+                    self.enemies[i].apply_damage(1);
+                }
+            }
+
+            //Goomba stomp the enemy
+            if self.player.player_spr.intersecting(&self.enemies[i].sprite) &&
+               self.player_position().y > self.enemies[i].sprite.position.y &&
+               self.player_velocity().y < -PLAYER_CLIMB_SPEED {
+                self.enemies[i].apply_damage(2);
+                self.player.player_spr.velocity.y *= BOUNCE_SPEED;
+            } 
+        }
+
+        let mut stop = false;
+        while !stop {
+            stop = true;
+            let mut index = None;
+            for (i, enemy) in self.enemies.iter().enumerate() {
+                if enemy.health <= 0 {
+                    self.player.score += enemy.score();
+                    stop = false;
+                    index = Some(i); 
+                }
+            }
+
+            if let Some(i) = index {
+                self.enemies.remove(i); 
+            }
         }
     }
 

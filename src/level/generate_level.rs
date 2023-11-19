@@ -103,7 +103,7 @@ impl Level {
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                             0.9,
                             1.0,
-                            EnemyType::Chicken,
+                            EnemyType::Eyeball,
                             flipped,
                         ));
                     } else if rand_value < 40 {
@@ -121,7 +121,7 @@ impl Level {
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                             0.9,
                             1.0,
-                            EnemyType::Chicken,
+                            EnemyType::Slime,
                             flipped,
                         ));
                     }

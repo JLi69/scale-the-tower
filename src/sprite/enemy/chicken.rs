@@ -29,20 +29,20 @@ impl Enemy {
                     continue;
                 }
 
-                if !transparent(level.get_tile(x as u32, y as u32))
-                {
+                if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     if self.sprite.intersecting(&hitbox) {
                         collided = true;
                     }
                     self.sprite.uncollide_x(&hitbox);
                 } else if !level.out_of_bounds(x, y - 1)
-                        && transparent(level.get_tile(x as u32, y as u32 - 1))
-                        && self.state == EnemyState::Wander {
+                    && transparent(level.get_tile(x as u32, y as u32 - 1))
+                    && self.state == EnemyState::Wander
+                {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                     if self.sprite.intersecting(&hitbox) {
                         at_edge = true;
-                    } 
+                    }
                 }
             }
         }
@@ -63,7 +63,7 @@ impl Enemy {
             EnemyState::Wander => {
                 self.sprite.set_animation(1.0, 2, 3);
                 if collided || at_edge {
-                    self.state = EnemyState::Idle; 
+                    self.state = EnemyState::Idle;
                     self.idle_cooldown = -4.5;
                 }
 
@@ -82,8 +82,9 @@ impl Enemy {
                     self.sprite.velocity.x = -2.0;
                 }
 
-                if (self.sprite.position - player_pos).magnitude() > 5.0 &&
-                    self.sprite.velocity.y <= 0.0 {
+                if (self.sprite.position - player_pos).magnitude() > 5.0
+                    && self.sprite.velocity.y <= 0.0
+                {
                     self.state = EnemyState::Wander;
                     self.sprite.velocity.x = 1.5 * self.sprite.velocity.x.signum();
                 }
@@ -91,7 +92,7 @@ impl Enemy {
                 if collided && !self.falling && self.state == EnemyState::Chase {
                     //Attempt to jump over the obstacle
                     self.sprite.velocity.y = 6.0;
-                } 
+                }
             }
             EnemyState::Idle => {
                 self.sprite.set_animation(1.0, 0, 1);

@@ -107,6 +107,7 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
         }
         ui::ButtonAction::GotoMainMenu => state.game_screen = GameScreen::MainMenu,
         ui::ButtonAction::GotoHighScores => state.game_screen = GameScreen::HighScores,
+        ui::ButtonAction::GotoAbout => state.game_screen = GameScreen::AboutScreen,
         ui::ButtonAction::StartGame => {
             let persp_matrix = state.perspective;
             *state = State::starting_state();
@@ -193,6 +194,7 @@ fn main() -> Result<(), String> {
     let gameover_menu = ui::Menu::create_gameover_menu();
     let hiscore_menu = ui::Menu::create_hiscore_menu();
     let win_screen = ui::Menu::create_win_screen();
+    let about_screen = ui::Menu::create_about_screen();
 
     let mut dt = 0.0f32;
     let mut tile_animation_timer = 0.0f32;
@@ -225,7 +227,7 @@ fn main() -> Result<(), String> {
         sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
 
         match state.game_screen {
-            GameScreen::MainMenu | GameScreen::HighScores => {}
+            GameScreen::MainMenu | GameScreen::HighScores | GameScreen::AboutScreen => {}
             GameScreen::Game | GameScreen::Paused | GameScreen::WinScreen => {
                 //Display level
                 tile_textures.bind();
@@ -283,6 +285,9 @@ fn main() -> Result<(), String> {
         match state.game_screen {
             GameScreen::MainMenu => {
                 main_menu.display(&rect_vao, &text_shader, &win_info);
+            }
+            GameScreen::AboutScreen => {
+                about_screen.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::WinScreen => {
                 text_shader.use_program();
@@ -378,6 +383,7 @@ fn main() -> Result<(), String> {
         if left_mouse_held && !state.left_mouse_held {
             let button_action = match state.game_screen {
                 GameScreen::Game => None,
+                GameScreen::AboutScreen => about_screen.get_clicked_button_action(&win_info),
                 GameScreen::WinScreen => win_screen.get_clicked_button_action(&win_info),
                 GameScreen::HighScores => hiscore_menu.get_clicked_button_action(&win_info),
                 GameScreen::Paused => pause_menu.get_clicked_button_action(&win_info),

@@ -22,6 +22,7 @@ pub enum GameScreen {
     GameOver,
     WinScreen,
     HighScores,
+    AboutScreen,
 }
 
 pub struct Player {

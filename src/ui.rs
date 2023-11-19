@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
 
@@ -105,6 +107,7 @@ pub enum ButtonAction {
     GotoMainMenu,
     StartGame,
     GotoHighScores,
+    GotoAbout,
 }
 
 pub struct MenuElement {
@@ -216,7 +219,7 @@ impl Menu {
                     ButtonAction::GotoHighScores,
                 ),
                 //Go to about page
-                MenuElement::button(b"About", 0.0, -120.0, 16.0, ButtonAction::QuitGame),
+                MenuElement::button(b"About", 0.0, -120.0, 16.0, ButtonAction::GotoAbout),
                 //Quit game
                 MenuElement::button(b"Quit", 0.0, -180.0, 16.0, ButtonAction::QuitGame),
             ],
@@ -276,6 +279,35 @@ impl Menu {
                 MenuElement::text(b"You Did It!", 0.0, 180.0, 24.0),
                 MenuElement::text(b"You scaled the tower!", 0.0, 126.0, 8.0),
             ],
+        }
+    }
+
+    pub fn create_about_screen() -> Self {
+        let about_text = match std::fs::File::open("assets/about.txt") {
+            Ok(mut file) => {
+                let mut about = String::new();
+                let res = file.read_to_string(&mut about);
+                if let Err(msg) = res {
+                    eprintln!("{msg}"); 
+                }
+
+                about
+                    .lines()
+                    .enumerate()
+                    .map(|(i, line)| MenuElement::text(line.as_bytes(), 0.0, i as f32 * -20.0 + 160.0, 8.0))
+                    .collect()
+            }
+            Err(msg) => {
+                eprintln!("{msg}");
+                vec![]
+            },
+        };
+
+        Self {
+            buttons: vec![
+                MenuElement::button(b"Main Menu", 0.0, -256.0, 16.0, ButtonAction::GotoMainMenu),
+            ],
+            text: about_text,
         }
     }
 

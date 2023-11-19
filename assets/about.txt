@@ -1,0 +1,15 @@
+No hero has ever scaled the Tower of Doom
+and survived to tell the tale.
+However, perhaps you might be the first
+to succeed at scaling and plundering
+the tower...
+
+CONTROLS
+Left/Right Arrows: Move around
+Up Arrow: Jump
+Space: Attack
+
+CREDITS
+Art/programming - NotJL
+Source code:
+https://github.com/JLi69/scale-the-tower

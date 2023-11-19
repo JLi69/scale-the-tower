@@ -1,17 +1,17 @@
 use super::Sprite;
 use crate::{
-    game::DAMAGE_COOLDOWN, gfx::VertexArrayObject, level::Level,
+    game::DAMAGE_COOLDOWN, game::GRAVITY, gfx::VertexArrayObject, level::transparent, level::Level,
     shader::ShaderProgram,
-    game::GRAVITY,
-    level::transparent,
 };
 use cgmath::{vec2, Matrix4, Vector2};
 
-mod slime;
+mod chicken;
 mod eyeball;
+mod slime;
 
 const ENEMY_ATTACK_COOLDOWN: f32 = 1.0;
 
+#[derive(PartialEq, Eq)]
 enum EnemyState {
     Idle,
     Wander,
@@ -21,6 +21,7 @@ enum EnemyState {
 pub enum EnemyType {
     Slime,
     Eyeball,
+    Chicken,
 }
 
 pub struct Enemy {
@@ -30,6 +31,7 @@ pub struct Enemy {
     falling: bool,
     damage_cooldown: f32,
     attack_cooldown: f32,
+    idle_cooldown: f32,
     state: EnemyState,
 }
 
@@ -41,16 +43,19 @@ impl Enemy {
         match enemy {
             EnemyType::Slime => spr.set_animation(0.5, 0, 1),
             EnemyType::Eyeball => spr.set_animation(1.0, 0, 1),
+            EnemyType::Chicken => spr.set_animation(1.0, 2, 3),
         }
 
         match enemy {
             EnemyType::Slime => spr.velocity.x = 0.5,
             EnemyType::Eyeball => spr.velocity.x = 1.0,
+            EnemyType::Chicken => spr.velocity.x = 1.5,
         }
 
         let enemy_hp = match enemy {
             EnemyType::Slime => 1,
             EnemyType::Eyeball => 2,
+            EnemyType::Chicken => 3,
         };
 
         spr.flipped = flipped;
@@ -65,6 +70,7 @@ impl Enemy {
             falling: false,
             damage_cooldown: 0.0,
             attack_cooldown: 0.0,
+            idle_cooldown: 0.0,
             state: EnemyState::Wander,
         }
     }
@@ -88,6 +94,13 @@ impl Enemy {
                     1.0 / 8.0,
                 );
             }
+            EnemyType::Chicken => {
+                shader_program.uniform_vec2f(
+                    "uTexOffset",
+                    1.0 / 8.0 * self.sprite.current_frame() as f32 + 2.0 / 8.0,
+                    1.0 / 8.0,
+                );
+            }
             EnemyType::Eyeball => {
                 shader_program.uniform_vec2f(
                     "uTexOffset",
@@ -107,7 +120,6 @@ impl Enemy {
                 //If we are supported by a tile then stop falling
                 self.falling = false;
                 self.sprite.velocity.y = -0.01;
-                self.falling = false;
             } else if self.sprite.position.y < sprite.position.y {
                 //Set y velocity to 0 so we don't "stick" to the tile if the
                 //player decides to hold down the jump key
@@ -135,7 +147,7 @@ impl Enemy {
                 self.sprite.dimensions.y.ceil() / 2.0 + 1.0,
             );
         let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
-        let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32); 
+        let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
 
         (top_left_x, top_left_y, bot_right_x, bot_right_y)
     }
@@ -147,12 +159,13 @@ impl Enemy {
     fn fall(&mut self, level: &Level, dt: f32) {
         self.sprite.position.y += self.sprite.velocity.y * dt * 0.5;
         if self.falling {
-            self.sprite.velocity.y += GRAVITY * dt;
+            self.sprite.velocity.y -= GRAVITY * dt;
         }
         self.sprite.position.y += self.sprite.velocity.y * dt * 0.5;
 
         let (top_left_x, top_left_y, bot_right_x, bot_right_y) = self.tile_bounding_box();
 
+        self.falling = true;
         //Uncollide from any tiles and also determine if the sprite is falling
         for x in top_left_x..bot_right_x {
             for y in top_left_y..bot_right_y {
@@ -166,15 +179,16 @@ impl Enemy {
                     self.sprite.uncollide_y(&hitbox);
                 }
             }
-        } 
+        }
     }
 
-    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) { 
+    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
         self.sprite.flipped = self.sprite.velocity.x < 0.0;
 
         match self.enemy_type {
             EnemyType::Slime => self.update_slime(dt, level, player_pos),
             EnemyType::Eyeball => self.update_eyeball(dt, level, player_pos),
+            EnemyType::Chicken => self.update_chicken(dt, level, player_pos),
         }
 
         self.damage_cooldown -= dt;
@@ -187,7 +201,7 @@ impl Enemy {
         }
 
         match self.enemy_type {
-            EnemyType::Slime | EnemyType::Eyeball => 1,
+            EnemyType::Slime | EnemyType::Eyeball | EnemyType::Chicken => 1,
         }
     }
 
@@ -202,6 +216,7 @@ impl Enemy {
         match self.enemy_type {
             EnemyType::Slime => 10,
             EnemyType::Eyeball => 20,
+            EnemyType::Chicken => 30,
         }
     }
 

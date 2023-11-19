@@ -288,25 +288,31 @@ impl Menu {
                 let mut about = String::new();
                 let res = file.read_to_string(&mut about);
                 if let Err(msg) = res {
-                    eprintln!("{msg}"); 
+                    eprintln!("{msg}");
                 }
 
                 about
                     .lines()
                     .enumerate()
-                    .map(|(i, line)| MenuElement::text(line.as_bytes(), 0.0, i as f32 * -20.0 + 160.0, 8.0))
+                    .map(|(i, line)| {
+                        MenuElement::text(line.as_bytes(), 0.0, i as f32 * -20.0 + 160.0, 8.0)
+                    })
                     .collect()
             }
             Err(msg) => {
                 eprintln!("{msg}");
                 vec![]
-            },
+            }
         };
 
         Self {
-            buttons: vec![
-                MenuElement::button(b"Main Menu", 0.0, -256.0, 16.0, ButtonAction::GotoMainMenu),
-            ],
+            buttons: vec![MenuElement::button(
+                b"Main Menu",
+                0.0,
+                -256.0,
+                16.0,
+                ButtonAction::GotoMainMenu,
+            )],
             text: about_text,
         }
     }

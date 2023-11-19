@@ -1,8 +1,6 @@
-use crate::{
-    level::transparent, level::Level, Sprite
-};
-use cgmath::Vector2;
 use super::Enemy;
+use crate::{level::transparent, level::Level, Sprite};
+use cgmath::Vector2;
 
 impl Enemy {
     pub fn update_slime(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
@@ -11,7 +9,7 @@ impl Enemy {
         {
             self.sprite.position.x += self.sprite.velocity.x * dt;
         }
-        //Handle collision 
+        //Handle collision
         let (top_left_x, top_left_y, bot_right_x, bot_right_y) = self.tile_bounding_box();
 
         //Scan the level for tiles the sprite might have collided with

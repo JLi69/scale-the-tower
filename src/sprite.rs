@@ -103,6 +103,7 @@ impl Sprite {
         self.animation_duration = duration;
         self.start_frame = start_frame;
         self.end_frame = end_frame;
+        self.update_animation_frame(0.0);
     }
 
     //Uncollide the sprite with another sprite in the x axis

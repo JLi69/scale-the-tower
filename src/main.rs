@@ -132,7 +132,7 @@ fn load_icon(window: &mut glfw::Window) {
                 pixels: buf,
             }]);
         }
-        Err(msg) => eprintln!("{msg}"), 
+        Err(msg) => eprintln!("{msg}"),
     }
 }
 

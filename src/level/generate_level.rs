@@ -73,37 +73,55 @@ impl Level {
                             EnemyType::Slime,
                             flipped,
                         ));
+                    } else if rand_value < 40 {
+                        enemies.push(Enemy::new(
+                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                            0.9,
+                            1.0,
+                            EnemyType::Eyeball,
+                            flipped,
+                        ));
                     } else if rand_value < 50 {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                             0.9,
                             1.0,
-                            EnemyType::Eyeball,
+                            EnemyType::Chicken,
                             flipped,
-                        )); 
+                        ));
                     }
                 }
                 SpawnType::Enemy => {
                     let rand_value = rng.gen::<u32>() % 100;
                     let flipped = rng.gen::<bool>();
                     //Spawn enemy
-                    if rand_value < 40 {
+                    if rand_value < 20 {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                             0.9,
                             1.0,
-                            EnemyType::Eyeball,
+                            EnemyType::Chicken,
                             flipped,
-                        )); 
+                        ));
+                    } else if rand_value < 40 {
+                        enemies.push(Enemy::new(
+                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                            0.9,
+                            1.0,
+                            EnemyType::Chicken,
+                            flipped,
+                        ));
                     } else {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
                             0.9,
                             1.0,
-                            EnemyType::Slime,
+                            EnemyType::Chicken,
                             flipped,
                         ));
                     }

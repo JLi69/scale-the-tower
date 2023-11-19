@@ -1,14 +1,26 @@
 use super::Sprite;
 use crate::{
-    game::DAMAGE_COOLDOWN, game::GRAVITY, gfx::VertexArrayObject, level::transparent, level::Level,
+    game::DAMAGE_COOLDOWN, gfx::VertexArrayObject, level::Level,
     shader::ShaderProgram,
+    game::GRAVITY,
+    level::transparent,
 };
 use cgmath::{vec2, Matrix4, Vector2};
 
+mod slime;
+mod eyeball;
+
 const ENEMY_ATTACK_COOLDOWN: f32 = 1.0;
+
+enum EnemyState {
+    Idle,
+    Wander,
+    Chase,
+}
 
 pub enum EnemyType {
     Slime,
+    Eyeball,
 }
 
 pub struct Enemy {
@@ -18,6 +30,7 @@ pub struct Enemy {
     falling: bool,
     damage_cooldown: f32,
     attack_cooldown: f32,
+    state: EnemyState,
 }
 
 impl Enemy {
@@ -27,14 +40,17 @@ impl Enemy {
 
         match enemy {
             EnemyType::Slime => spr.set_animation(0.5, 0, 1),
+            EnemyType::Eyeball => spr.set_animation(1.0, 0, 1),
         }
 
         match enemy {
             EnemyType::Slime => spr.velocity.x = 0.5,
+            EnemyType::Eyeball => spr.velocity.x = 1.0,
         }
 
         let enemy_hp = match enemy {
             EnemyType::Slime => 1,
+            EnemyType::Eyeball => 2,
         };
 
         spr.flipped = flipped;
@@ -49,6 +65,7 @@ impl Enemy {
             falling: false,
             damage_cooldown: 0.0,
             attack_cooldown: 0.0,
+            state: EnemyState::Wander,
         }
     }
 
@@ -68,6 +85,13 @@ impl Enemy {
                 shader_program.uniform_vec2f(
                     "uTexOffset",
                     1.0 / 8.0 * self.sprite.current_frame() as f32,
+                    1.0 / 8.0,
+                );
+            }
+            EnemyType::Eyeball => {
+                shader_program.uniform_vec2f(
+                    "uTexOffset",
+                    1.0 / 8.0 * self.sprite.current_frame() as f32 + 6.0 / 8.0,
                     1.0 / 8.0,
                 );
             }
@@ -94,13 +118,12 @@ impl Enemy {
         }
     }
 
-    fn update_slime(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
-        if (player_pos.x - self.sprite.position.x).abs() > 0.7
-            || (player_pos.y - self.sprite.position.y).abs() > 0.2
-        {
-            self.sprite.position.x += self.sprite.velocity.x * dt;
-        }
-        //Handle collision
+    //Returns the tile bounding box of the sprite, this is
+    //the rectangle that represents the tile coordinates the sprite
+    //is intersecting with
+    //
+    //of the form: (top_left_x, top_left_y, bot_right_x, bot_right_y)
+    fn tile_bounding_box(&self) -> (i32, i32, i32, i32) {
         let top_left = vec2(self.sprite.position.x, self.sprite.position.y)
             - vec2(
                 self.sprite.dimensions.x.ceil() / 2.0 + 1.0,
@@ -112,40 +135,23 @@ impl Enemy {
                 self.sprite.dimensions.y.ceil() / 2.0 + 1.0,
             );
         let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
-        let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
+        let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32); 
 
-        //Scan the level for tiles the sprite might have collided with
-        //and then uncollide the sprite from the tiles
-        let mut collided = false;
-        for x in top_left_x..bot_right_x {
-            for y in top_left_y..bot_right_y {
-                if level.out_of_bounds(x, y) {
-                    continue;
-                }
+        (top_left_x, top_left_y, bot_right_x, bot_right_y)
+    }
 
-                if !transparent(level.get_tile(x as u32, y as u32))
-                    || (!level.out_of_bounds(x, y - 1)
-                        && transparent(level.get_tile(x as u32, y as u32 - 1)))
-                {
-                    let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
-                    if self.sprite.intersecting(&hitbox) {
-                        collided = true;
-                    }
-                    self.sprite.uncollide_x(&hitbox);
-                }
-            }
-        }
-
-        if collided {
-            self.sprite.velocity.x *= -1.0;
-            self.sprite.position.x += self.sprite.velocity.x * dt;
-        }
-
+    //Accelerates sprite due to gravity but also check if the sprite
+    //collided with a tile and if the sprite did collide with a tile,
+    //then check if the sprite is now being supported by that tile and
+    //then check if the sprite should keep falling
+    fn fall(&mut self, level: &Level, dt: f32) {
         self.sprite.position.y += self.sprite.velocity.y * dt * 0.5;
         if self.falling {
-            self.sprite.velocity.y += GRAVITY * 0.5;
+            self.sprite.velocity.y += GRAVITY * dt;
         }
         self.sprite.position.y += self.sprite.velocity.y * dt * 0.5;
+
+        let (top_left_x, top_left_y, bot_right_x, bot_right_y) = self.tile_bounding_box();
 
         //Uncollide from any tiles and also determine if the sprite is falling
         for x in top_left_x..bot_right_x {
@@ -160,16 +166,19 @@ impl Enemy {
                     self.sprite.uncollide_y(&hitbox);
                 }
             }
+        } 
+    }
+
+    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) { 
+        self.sprite.flipped = self.sprite.velocity.x < 0.0;
+
+        match self.enemy_type {
+            EnemyType::Slime => self.update_slime(dt, level, player_pos),
+            EnemyType::Eyeball => self.update_eyeball(dt, level, player_pos),
         }
 
         self.damage_cooldown -= dt;
         self.attack_cooldown -= dt;
-    }
-
-    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
-        match self.enemy_type {
-            EnemyType::Slime => self.update_slime(dt, level, player_pos),
-        }
     }
 
     pub fn get_damage(&self) -> i32 {
@@ -178,7 +187,7 @@ impl Enemy {
         }
 
         match self.enemy_type {
-            EnemyType::Slime => 1,
+            EnemyType::Slime | EnemyType::Eyeball => 1,
         }
     }
 
@@ -192,6 +201,7 @@ impl Enemy {
     pub fn score(&self) -> u32 {
         match self.enemy_type {
             EnemyType::Slime => 10,
+            EnemyType::Eyeball => 20,
         }
     }
 

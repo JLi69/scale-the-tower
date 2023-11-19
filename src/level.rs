@@ -144,6 +144,10 @@ impl Level {
 
         self.background_tiles[((self.width * y) + x) as usize] = tile;
     }
+
+    pub fn h(&self) -> u32 {
+        self.height
+    }
 }
 
 impl Drop for Level {

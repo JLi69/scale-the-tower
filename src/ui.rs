@@ -264,6 +264,21 @@ impl Menu {
         }
     }
 
+    pub fn create_win_screen() -> Self {
+        Self {
+            buttons: vec![
+                //Go to main menu
+                MenuElement::button(b"Main Menu", 0.0, -88.0, 16.0, ButtonAction::GotoMainMenu),
+                //Quit game
+                MenuElement::button(b"Quit", 0.0, -136.0, 16.0, ButtonAction::QuitGame),
+            ],
+            text: vec![
+                MenuElement::text(b"You Did It!", 0.0, 180.0, 24.0),
+                MenuElement::text(b"You scaled the tower!", 0.0, 126.0, 8.0),
+            ],
+        }
+    }
+
     pub fn display(
         &self,
         rect_vao: &VertexArrayObject,

@@ -20,6 +20,7 @@ pub enum GameScreen {
     Game,
     Paused,
     GameOver,
+    WinScreen,
     HighScores,
 }
 

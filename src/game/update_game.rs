@@ -27,8 +27,9 @@ impl State {
             if self.player.player_spr.intersecting(&self.enemies[i].sprite)
                 && self.player_position().y > self.enemies[i].sprite.position.y
                 && self.player_velocity().y < -PLAYER_CLIMB_SPEED
+                && !self.player.climbing()
             {
-                self.enemies[i].apply_damage(2);
+                self.enemies[i].apply_damage(1);
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
             } else if self.player.player_spr.intersecting(&self.enemies[i].sprite) {
                 self.player.apply_damage(self.enemies[i].get_damage());
@@ -91,8 +92,17 @@ impl State {
     }
 
     pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {
-        if self.player.player_health <= 0 {
-            self.game_screen = GameScreen::GameOver;
+        if self.player.player_health <= 0
+            || (self.player_position().y > self.level.h() as f32 - 1.0 && !self.player.falling())
+        {
+            if self.player.player_health <= 0 {
+                self.game_screen = GameScreen::GameOver;
+            } else {
+                self.player.player_spr.set_animation(1.0, 0, 0);
+                self.player.player_spr.update_animation_frame(0.0);
+                self.player.score += 500;
+                self.game_screen = GameScreen::WinScreen;
+            }
 
             //Check if the player got a new high score and if they
             //did, write that highscore to a file

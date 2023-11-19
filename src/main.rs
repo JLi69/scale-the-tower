@@ -178,6 +178,7 @@ fn main() -> Result<(), String> {
     let main_menu = ui::Menu::create_main_menu();
     let gameover_menu = ui::Menu::create_gameover_menu();
     let hiscore_menu = ui::Menu::create_hiscore_menu();
+    let win_screen = ui::Menu::create_win_screen();
 
     let mut dt = 0.0f32;
     let mut tile_animation_timer = 0.0f32;
@@ -211,7 +212,7 @@ fn main() -> Result<(), String> {
 
         match state.game_screen {
             GameScreen::MainMenu | GameScreen::HighScores => {}
-            GameScreen::Game | GameScreen::Paused => {
+            GameScreen::Game | GameScreen::Paused | GameScreen::WinScreen => {
                 //Display level
                 tile_textures.bind();
                 level_shader.use_program();
@@ -268,6 +269,30 @@ fn main() -> Result<(), String> {
         match state.game_screen {
             GameScreen::MainMenu => {
                 main_menu.display(&rect_vao, &text_shader, &win_info);
+            }
+            GameScreen::WinScreen => {
+                text_shader.use_program();
+                ui::display_ascii_text_centered(
+                    &rect_vao,
+                    &text_shader,
+                    format!("score:{}", state.player.score).as_bytes(),
+                    0.0,
+                    96.0,
+                    8.0,
+                );
+
+                if state.new_highscore {
+                    ui::display_ascii_text_centered(
+                        &rect_vao,
+                        &text_shader,
+                        b"New High Score!",
+                        0.0,
+                        72.0,
+                        8.0,
+                    );
+                }
+
+                win_screen.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::HighScores => {
                 hiscore::display_hiscores(&rect_vao, &text_shader, &highscores);
@@ -339,6 +364,7 @@ fn main() -> Result<(), String> {
         if left_mouse_held && !state.left_mouse_held {
             let button_action = match state.game_screen {
                 GameScreen::Game => None,
+                GameScreen::WinScreen => win_screen.get_clicked_button_action(&win_info),
                 GameScreen::HighScores => hiscore_menu.get_clicked_button_action(&win_info),
                 GameScreen::Paused => pause_menu.get_clicked_button_action(&win_info),
                 GameScreen::GameOver => gameover_menu.get_clicked_button_action(&win_info),

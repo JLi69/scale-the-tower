@@ -287,6 +287,10 @@ fn main() -> Result<(), String> {
                 main_menu.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::AboutScreen => {
+                rect_shader.use_program();
+                rect_shader.uniform_vec4f("uColor", 0.1, 0.1, 0.1, 1.0);
+                rect_vao.draw_arrays();
+                text_shader.use_program();
                 about_screen.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::WinScreen => {

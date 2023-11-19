@@ -2,6 +2,35 @@ use std::fs::File;
 use std::mem::size_of;
 use std::os::raw::c_void;
 
+pub fn load_image_pixels(
+    path: &str
+) -> Result<(Vec<u32>, png::OutputInfo), String> {
+    let file = File::open(path).map_err(|e| e.to_string())?;
+    let decoder = png::Decoder::new(file);
+    let mut reader = decoder.read_info().map_err(|e| e.to_string())?;
+    
+    let mut buf = vec![0; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut buf).map_err(|e| e.to_string())?;
+
+    let mut pixels = vec![0; buf.len() / 4];
+    for i in 0..(buf.len() / 4) {
+        if i * 4 + 3 >= buf.len() {
+            break; 
+        }
+
+        let (r, g, b, a) = (
+            buf[i * 4] as u32, 
+            buf[i * 4 + 1] as u32, 
+            buf[i * 4 + 2] as u32, 
+            buf[i * 4 + 3] as u32,
+        );
+
+        pixels[i] = a << 24 | b << 16 | g << 8 | r;
+    }
+
+    Ok((pixels, info))
+}
+
 pub struct Texture {
     id: u32,
 }

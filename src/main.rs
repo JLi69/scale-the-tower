@@ -122,6 +122,19 @@ fn process_button_action(button_action: ui::ButtonAction, state: &mut State) {
     }
 }
 
+fn load_icon(window: &mut glfw::Window) {
+    match gfx::load_image_pixels("assets/appicon.png") {
+        Ok((buf, info)) => {
+            window.set_icon_from_pixels(vec![glfw::PixelImage {
+                width: info.width,
+                height: info.height,
+                pixels: buf,
+            }]);
+        }
+        Err(msg) => eprintln!("{msg}"), 
+    }
+}
+
 fn main() -> Result<(), String> {
     //Attempt to initialize glfw
     let mut glfw = glfw::init_no_callbacks().map_err(|e| e.to_string())?;
@@ -131,6 +144,7 @@ fn main() -> Result<(), String> {
             Some(win) => win,
             _ => panic!("Failed to create window!"),
         };
+    load_icon(&mut window);
     window.make_current();
     glfw.set_swap_interval(glfw::SwapInterval::Sync(1));
     window.set_framebuffer_size_polling(true);

@@ -140,9 +140,8 @@ pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
     let paths: Vec<String> = match File::open(&template_list_path) {
         Ok(mut file) => {
             let mut buf = String::new();
-            match file.read_to_string(&mut buf) {
-                Ok(sz) => eprintln!("read {sz} bytes from {template_list_path}"),
-                Err(msg) => eprintln!("{msg}"),
+            if let Err(msg) = file.read_to_string(&mut buf) {
+                eprintln!("{msg}");
             }
 
             buf.lines()

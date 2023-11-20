@@ -182,6 +182,10 @@ fn main() -> Result<(), String> {
         "assets/shaders/rect_vert.glsl",
         "assets/shaders/rect_frag.glsl",
     );
+    let background_shader = shader::program_from_vert_and_frag(
+        "assets/shaders/rect_vert.glsl", 
+        "assets/shaders/background_frag.glsl"
+    );
     //Load Textures
     let sprite_textures = gfx::load_texture("assets/textures/sprites.png");
     let tile_textures = gfx::load_texture("assets/textures/tiles.png");
@@ -203,6 +207,7 @@ fn main() -> Result<(), String> {
     while !window.should_close() {
         let start = Instant::now();
         process_events(&mut window, &events, &mut state);
+        let win_info = get_glfw_window_info(&window);
 
         let view_matrix = Matrix4::from_translation(cgmath::vec3(
             -state.player_position().x,
@@ -227,7 +232,12 @@ fn main() -> Result<(), String> {
         sprite_shader.uniform_float("uTexScale", 1.0 / 8.0);
 
         match state.game_screen {
-            GameScreen::MainMenu | GameScreen::HighScores | GameScreen::AboutScreen => {}
+            GameScreen::MainMenu | GameScreen::HighScores | GameScreen::AboutScreen => {
+                tile_textures.bind();
+                background_shader.use_program();
+                background_shader.uniform_vec2f("uScreenDimensions", win_info.win_w, win_info.win_h);
+                rect_vao.draw_arrays();
+            }
             GameScreen::Game | GameScreen::Paused | GameScreen::WinScreen => {
                 //Display level
                 tile_textures.bind();
@@ -278,7 +288,6 @@ fn main() -> Result<(), String> {
         icons.bind();
         text_shader.use_program();
         text_shader.uniform_float("uTexScale", 1.0 / ui::ICONS_TEXTURE_SCALE);
-        let win_info = get_glfw_window_info(&window);
         text_shader.uniform_vec2f("uScreenDimensions", win_info.win_w, win_info.win_h);
         text_shader.uniform_vec4f("uColor", 1.0, 1.0, 1.0, 1.0);
 
@@ -287,10 +296,6 @@ fn main() -> Result<(), String> {
                 main_menu.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::AboutScreen => {
-                rect_shader.use_program();
-                rect_shader.uniform_vec4f("uColor", 0.1, 0.1, 0.1, 1.0);
-                rect_vao.draw_arrays();
-                text_shader.use_program();
                 about_screen.display(&rect_vao, &text_shader, &win_info);
             }
             GameScreen::WinScreen => {
@@ -317,7 +322,7 @@ fn main() -> Result<(), String> {
 
                 win_screen.display(&rect_vao, &text_shader, &win_info);
             }
-            GameScreen::HighScores => {
+            GameScreen::HighScores => { 
                 hiscore::display_hiscores(&rect_vao, &text_shader, &highscores);
                 hiscore_menu.display(&rect_vao, &text_shader, &win_info);
             }

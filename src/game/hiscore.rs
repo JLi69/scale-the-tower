@@ -54,9 +54,8 @@ pub fn load_highscores(path: &str) -> Vec<u32> {
             let mut buf = String::new();
 
             let res = file.read_to_string(&mut buf);
-            match res {
-                Ok(bytes) => eprintln!("Read {bytes} bytes from {path}"),
-                Err(msg) => eprintln!("{msg}"),
+            if let Err(msg) = res {
+                eprintln!("{msg}");
             }
 
             buf.lines().for_each(|line| {

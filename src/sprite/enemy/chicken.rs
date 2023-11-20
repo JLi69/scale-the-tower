@@ -91,7 +91,7 @@ impl Enemy {
 
                 if collided && !self.falling && self.state == EnemyState::Chase {
                     //Attempt to jump over the obstacle
-                    self.sprite.velocity.y = 6.0;
+                    self.sprite.velocity.y = 8.0;
                 }
             }
             EnemyState::Idle => {

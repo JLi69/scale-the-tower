@@ -68,8 +68,6 @@ impl Level {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Slime,
                             flipped,
                         ));
@@ -77,8 +75,6 @@ impl Level {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Eyeball,
                             flipped,
                         ));
@@ -86,9 +82,14 @@ impl Level {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Chicken,
+                            flipped,
+                        ));
+                    } else if rand_value < 60 {
+                        enemies.push(Enemy::new(
+                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                            EnemyType::Skeleton,
                             flipped,
                         ));
                     }
@@ -97,30 +98,31 @@ impl Level {
                     let rand_value = rng.gen::<u32>() % 100;
                     let flipped = rng.gen::<bool>();
                     //Spawn enemy
-                    if rand_value < 20 {
+                    if rand_value < 15 {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Eyeball,
                             flipped,
                         ));
-                    } else if rand_value < 40 {
+                    } else if rand_value < 30 {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Chicken,
+                            flipped,
+                        ));
+                    } else if rand_value < 45 {
+                        enemies.push(Enemy::new(
+                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                            EnemyType::Skeleton,
                             flipped,
                         ));
                     } else {
                         enemies.push(Enemy::new(
                             (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
                             (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            0.9,
-                            1.0,
                             EnemyType::Slime,
                             flipped,
                         ));

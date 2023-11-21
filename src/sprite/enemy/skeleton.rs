@@ -8,7 +8,7 @@ use crate::{
 use cgmath::{InnerSpace, Vector2};
 
 impl Enemy {
-    pub fn update_chicken(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
+    pub fn update_skeleton(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
         if ((player_pos.x - self.sprite.position.x).abs() > 0.7
             || (player_pos.y - self.sprite.position.y).abs() > 0.2)
             && (self.state == EnemyState::Wander || self.state == EnemyState::Chase)
@@ -56,7 +56,7 @@ impl Enemy {
 
         if (self.sprite.position - player_pos).magnitude() < 5.0 {
             self.state = EnemyState::Chase;
-            self.sprite.velocity.x = 2.0 * self.sprite.velocity.x.signum();
+            self.sprite.velocity.x = 1.4 * self.sprite.velocity.x.signum();
         }
 
         match self.state {
@@ -76,21 +76,21 @@ impl Enemy {
                 self.sprite.set_animation(0.4, 2, 3);
 
                 if self.sprite.position.x < player_pos.x - 0.5 {
-                    self.sprite.velocity.x = 2.0;
+                    self.sprite.velocity.x = 1.4;
                 } else if self.sprite.position.x > player_pos.x + 0.5 {
-                    self.sprite.velocity.x = -2.0;
+                    self.sprite.velocity.x = -1.4;
                 }
 
                 if (self.sprite.position - player_pos).magnitude() > 5.0
                     && self.sprite.velocity.y <= 0.0
                 {
                     self.state = EnemyState::Wander;
-                    self.sprite.velocity.x = 1.5 * self.sprite.velocity.x.signum();
+                    self.sprite.velocity.x = 0.7 * self.sprite.velocity.x.signum();
                 }
 
                 if collided && !self.falling && self.state == EnemyState::Chase {
                     //Attempt to jump over the obstacle
-                    self.sprite.velocity.y = 8.0;
+                    self.sprite.velocity.y = 6.0;
                 }
             }
             EnemyState::Idle => {
@@ -104,6 +104,7 @@ impl Enemy {
         }
 
         self.idle_cooldown -= dt;
+
         self.fall(level, dt);
     }
 }

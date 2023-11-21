@@ -8,6 +8,7 @@ use cgmath::{vec2, Matrix4, Vector2};
 mod chicken;
 mod eyeball;
 mod slime;
+mod skeleton;
 
 const ENEMY_ATTACK_COOLDOWN: f32 = 1.0;
 
@@ -22,6 +23,7 @@ pub enum EnemyType {
     Slime,
     Eyeball,
     Chicken,
+    Skeleton,
 }
 
 pub struct Enemy {
@@ -37,25 +39,28 @@ pub struct Enemy {
 
 impl Enemy {
     //Create a new enemy
-    pub fn new(x: f32, y: f32, w: f32, h: f32, enemy: EnemyType, flipped: bool) -> Self {
-        let mut spr = Sprite::new(x, y, w, h);
+    pub fn new(x: f32, y: f32, enemy: EnemyType, flipped: bool) -> Self {
+        let mut spr = Sprite::new(x, y, 0.9, 1.0);
 
         match enemy {
             EnemyType::Slime => spr.set_animation(0.5, 0, 1),
             EnemyType::Eyeball => spr.set_animation(1.0, 0, 1),
             EnemyType::Chicken => spr.set_animation(1.0, 2, 3),
+            EnemyType::Skeleton => spr.set_animation(1.0, 2, 3),
         }
 
         match enemy {
             EnemyType::Slime => spr.velocity.x = 0.5,
             EnemyType::Eyeball => spr.velocity.x = 1.0,
             EnemyType::Chicken => spr.velocity.x = 1.5,
+            EnemyType::Skeleton => spr.velocity.x = 0.7,
         }
 
         let enemy_hp = match enemy {
             EnemyType::Slime => 1,
             EnemyType::Eyeball => 2,
             EnemyType::Chicken => 3,
+            EnemyType::Skeleton => 3,
         };
 
         spr.flipped = flipped;
@@ -106,6 +111,13 @@ impl Enemy {
                     "uTexOffset",
                     1.0 / 8.0 * self.sprite.current_frame() as f32 + 6.0 / 8.0,
                     1.0 / 8.0,
+                );
+            }
+            EnemyType::Skeleton => {
+                shader_program.uniform_vec2f(
+                    "uTexOffset",
+                    1.0 / 8.0 * self.sprite.current_frame() as f32 + 4.0 / 8.0,
+                    2.0 / 8.0,
                 );
             }
         }
@@ -189,6 +201,7 @@ impl Enemy {
             EnemyType::Slime => self.update_slime(dt, level, player_pos),
             EnemyType::Eyeball => self.update_eyeball(dt, level, player_pos),
             EnemyType::Chicken => self.update_chicken(dt, level, player_pos),
+            EnemyType::Skeleton => self.update_skeleton(dt, level, player_pos),
         }
 
         self.damage_cooldown -= dt;
@@ -202,6 +215,7 @@ impl Enemy {
 
         match self.enemy_type {
             EnemyType::Slime | EnemyType::Eyeball | EnemyType::Chicken => 1,
+            EnemyType::Skeleton => 2,
         }
     }
 
@@ -217,6 +231,7 @@ impl Enemy {
             EnemyType::Slime => 10,
             EnemyType::Eyeball => 20,
             EnemyType::Chicken => 30,
+            EnemyType::Skeleton => 40,
         }
     }
 

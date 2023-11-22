@@ -6,6 +6,22 @@ use super::{
 };
 use rand::{rngs::ThreadRng, Rng};
 
+fn generate_enemy_type(
+    rand_value: u32,
+    weights: &[(u32, EnemyType)]
+) -> EnemyType {
+    let mut total = 0;
+    for (probability, enemy_type) in weights {
+        total += probability;
+        if total > rand_value {
+            return *enemy_type;
+        }
+    }
+
+    //Return a slime as the default enemy
+    EnemyType::Slime
+}
+
 fn spawn_enemy(
     enemies: &mut Vec<Enemy>,
     rng: &mut ThreadRng,
@@ -14,44 +30,68 @@ fn spawn_enemy(
     room_y: u32,
 ) {
     let rand_value = rng.gen::<u32>() % 100;
-    let flipped = rng.gen::<bool>();
-    //Spawn enemy
-    if rand_value < 15 {
-        enemies.push(Enemy::new(
-            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-            EnemyType::Eyeball,
-            flipped,
-        ));
-    } else if rand_value < 30 {
-        enemies.push(Enemy::new(
-            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-            EnemyType::Chicken,
-            flipped,
-        ));
-    } else if rand_value < 45 {
-        enemies.push(Enemy::new(
-            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-            EnemyType::Skeleton,
-            flipped,
-        ));
-    } else if rand_value < 60 {
-        enemies.push(Enemy::new(
-            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-            EnemyType::Demon,
-            flipped,
-        ));
+    let flipped = rng.gen::<bool>(); 
+   
+    let enemy_type = if room_y < 4 {
+        let weights = [ 
+            (40, EnemyType::Eyeball), 
+        ];
+        generate_enemy_type(rand_value, &weights)
+    } else if room_y < 8 {
+        let weights = [ 
+            (30, EnemyType::Eyeball), 
+            (20, EnemyType::Chicken),
+        ]; 
+        generate_enemy_type(rand_value, &weights)
+    } else if room_y < 12 {
+        let weights = [ 
+            (20, EnemyType::Eyeball), 
+            (30, EnemyType::Chicken),
+            (30, EnemyType::Skeleton),
+            (5, EnemyType::Demon),
+        ]; 
+        generate_enemy_type(rand_value, &weights)
+    } else if room_y < 20 {
+        let weights = [ 
+            (15, EnemyType::Eyeball), 
+            (15, EnemyType::Chicken),
+            (15, EnemyType::Skeleton),
+            (15, EnemyType::Demon),
+        ]; 
+        generate_enemy_type(rand_value, &weights)
+    } else if room_y < 28 {
+        let weights = [ 
+            (10, EnemyType::Eyeball), 
+            (10, EnemyType::Chicken),
+            (20, EnemyType::Skeleton),
+            (20, EnemyType::Demon),
+        ]; 
+        generate_enemy_type(rand_value, &weights)
+    } else if room_y < 36 {
+        let weights = [ 
+            (5, EnemyType::Eyeball), 
+            (5, EnemyType::Chicken),
+            (25, EnemyType::Skeleton),
+            (25, EnemyType::Demon),
+        ]; 
+        generate_enemy_type(rand_value, &weights)
     } else {
-        enemies.push(Enemy::new(
-            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-            EnemyType::Slime,
-            flipped,
-        ));
-    }
+        let weights = [ 
+            (5, EnemyType::Eyeball), 
+            (5, EnemyType::Chicken),
+            (30, EnemyType::Skeleton),
+            (30, EnemyType::Demon),
+        ];
+        generate_enemy_type(rand_value, &weights)
+    };
+    
+    //Spawn enemy
+    enemies.push(Enemy::new(
+        (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+        (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+        enemy_type,
+        flipped,
+    ));
 }
 
 impl Level {

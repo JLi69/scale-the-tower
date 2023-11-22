@@ -44,9 +44,7 @@ impl Enemy {
 
         match self.state {
             EnemyState::Wander => {
-                if (self.sprite.position - player_pos).magnitude() < 5.0
-                    && (self.sprite.position.y - player_pos.y).abs() < 1.0
-                {
+                if (self.sprite.position - player_pos).magnitude() < 5.0 {
                     self.state = EnemyState::Chase;
                 }
 
@@ -84,9 +82,7 @@ impl Enemy {
                 self.sprite.set_animation(1.0, 0, 1);
                 if self.idle_cooldown < -2.0 {
                     self.idle_cooldown = 2.0;
-                    if (self.sprite.position - player_pos).magnitude() < 5.0
-                        && (self.sprite.position.y - player_pos.y).abs() < 1.0
-                    {
+                    if (self.sprite.position - player_pos).magnitude() < 5.0 {
                         self.state = EnemyState::Chase;
                     } else {
                         self.state = EnemyState::Wander;
@@ -95,7 +91,7 @@ impl Enemy {
                 }
 
                 //Shoot a fireball
-                if self.attack_cooldown < 0.0 {
+                if self.attack_cooldown < 0.0 && self.idle_cooldown > 0.0 {
                     self.sprite.animation_timer = 0.75;
                     let mut sprite = Sprite::new(
                         self.sprite.position.x + self.sprite.velocity.x.signum() * 0.7,

@@ -20,6 +20,7 @@ enum EnemyState {
     Chase,
 }
 
+#[derive(Copy, Clone)]
 pub enum EnemyType {
     Slime,
     Eyeball,
@@ -64,8 +65,8 @@ impl Enemy {
             EnemyType::Slime => 1,
             EnemyType::Eyeball => 2,
             EnemyType::Chicken => 3,
-            EnemyType::Skeleton => 3,
-            EnemyType::Demon => 4,
+            EnemyType::Skeleton => 4,
+            EnemyType::Demon => 5,
         };
 
         spr.flipped = flipped;

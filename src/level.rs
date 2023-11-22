@@ -31,6 +31,9 @@ pub enum Tile {
 pub enum BackgroundTile {
     Empty,
     Wall,
+    SkullDecoration,
+    BannerTop,
+    BannerBottom,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

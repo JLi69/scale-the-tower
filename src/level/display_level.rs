@@ -373,6 +373,18 @@ impl Level {
                     vertices.push(background[i * VERTEX_LEN + 3]);
                     vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
                 }
+                BackgroundTile::SkullDecoration => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::BannerTop => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 2.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::BannerBottom => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 2.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
+                }
                 _ => {
                     vertices.push(background[i * VERTEX_LEN + 3]);
                     vertices.push(background[i * VERTEX_LEN + 4]);

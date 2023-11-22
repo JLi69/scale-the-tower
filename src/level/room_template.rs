@@ -1,3 +1,4 @@
+use super::BackgroundTile;
 use super::Tile;
 use super::ROOM_SIZE;
 use core::slice::Iter;
@@ -26,6 +27,7 @@ pub struct Spawn {
 
 pub struct RoomTemplate {
     tiles: [Tile; (ROOM_SIZE * ROOM_SIZE) as usize],
+    background_tiles: [BackgroundTile; (ROOM_SIZE * ROOM_SIZE) as usize],
     spawns: Vec<Spawn>,
 }
 
@@ -55,12 +57,21 @@ fn ascii_to_spawn(ch: u8) -> Option<SpawnType> {
     }
 }
 
+fn ascii_to_background_tile(ch: u8) -> Option<BackgroundTile> {
+    match ch {
+        b'b' => Some(BackgroundTile::BannerTop),
+        b's' => Some(BackgroundTile::SkullDecoration),
+        _ => None, 
+    }
+}
+
 impl RoomTemplate {
     pub fn load_from_file(path: &str) -> Result<Self, String> {
         match File::open(path) {
             Ok(mut file) => {
                 let mut template = RoomTemplate {
                     tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
+                    background_tiles: [BackgroundTile::Wall; (ROOM_SIZE * ROOM_SIZE) as usize],
                     spawns: Vec::new(),
                 };
 
@@ -73,20 +84,13 @@ impl RoomTemplate {
                 buf.iter()
                     .filter(|ch| ch.is_ascii_graphic())
                     .for_each(|ch| {
-                        template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air));
-                        x += 1;
-                        if x >= ROOM_SIZE && y > 0 {
-                            x = 0;
-                            y -= 1;
+                        template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air)); 
+                        template.set_background_tile(x, y, ascii_to_background_tile(*ch).unwrap_or(BackgroundTile::Wall));
+                        
+                        if template.get_background_tile(x, y + 1) == BackgroundTile::BannerTop {
+                            template.set_background_tile(x, y, BackgroundTile::BannerBottom);
                         }
-                    });
 
-                x = 0;
-                y = ROOM_SIZE - 1;
-
-                buf.iter()
-                    .filter(|ch| ch.is_ascii_graphic())
-                    .for_each(|ch| {
                         if let Some(t) = ascii_to_spawn(*ch) {
                             template.spawns.push(Spawn {
                                 spawn_type: t,
@@ -128,6 +132,22 @@ impl RoomTemplate {
         self.tiles[(y * ROOM_SIZE + x) as usize] = tile;
     }
 
+    pub fn get_background_tile(&self, x: u32, y: u32) -> BackgroundTile {
+        if x >= ROOM_SIZE || y >= ROOM_SIZE {
+            return BackgroundTile::Empty;
+        }
+
+        self.background_tiles[(y * ROOM_SIZE + x) as usize]
+    }
+
+    pub fn set_background_tile(&mut self, x: u32, y: u32, background_tile: BackgroundTile) {
+        if x >= ROOM_SIZE || y >= ROOM_SIZE {
+            return;
+        }
+
+        self.background_tiles[(y * ROOM_SIZE + x) as usize] = background_tile;
+    }
+
     pub fn get_spawns(&self) -> Iter<Spawn> {
         self.spawns.iter()
     }
@@ -167,6 +187,7 @@ pub fn load_room_templates(path: &str) -> Vec<RoomTemplate> {
         .map(|template_res| {
             template_res.unwrap_or(RoomTemplate {
                 tiles: [Tile::Air; (ROOM_SIZE * ROOM_SIZE) as usize],
+                background_tiles: [BackgroundTile::Empty; (ROOM_SIZE * ROOM_SIZE) as usize],
                 spawns: Vec::new(),
             })
         })

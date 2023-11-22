@@ -33,8 +33,8 @@ impl State {
 
             //Goomba stomp the enemy
             if self.player.player_spr.intersecting(&self.enemies[i].sprite)
-                && self.player_position().y > self.enemies[i].sprite.position.y 
-                    + self.enemies[i].sprite.dimensions.y / 2.0
+                && self.player_position().y
+                    > self.enemies[i].sprite.position.y + self.enemies[i].sprite.dimensions.y / 2.0
                 && self.player_velocity().y < -PLAYER_CLIMB_SPEED
                 && !self.player.climbing()
                 && self.player.player_health > 0

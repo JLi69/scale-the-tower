@@ -1,10 +1,58 @@
 use crate::sprite::enemy::{Enemy, EnemyType};
 
 use super::{
-    room_template::RoomTemplate, room_template::SpawnType, InteractiveTile, InteractiveTileSprite,
-    Level, Tile, ROOM_SIZE,
+    room_template::{RoomTemplate, Spawn, SpawnType},
+    InteractiveTile, InteractiveTileSprite, Level, Tile, ROOM_SIZE,
 };
 use rand::{rngs::ThreadRng, Rng};
+
+fn spawn_enemy(
+    enemies: &mut Vec<Enemy>,
+    rng: &mut ThreadRng,
+    spawn_location: &Spawn,
+    room_x: u32,
+    room_y: u32,
+) {
+    let rand_value = rng.gen::<u32>() % 100;
+    let flipped = rng.gen::<bool>();
+    //Spawn enemy
+    if rand_value < 15 {
+        enemies.push(Enemy::new(
+            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+            EnemyType::Eyeball,
+            flipped,
+        ));
+    } else if rand_value < 30 {
+        enemies.push(Enemy::new(
+            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+            EnemyType::Chicken,
+            flipped,
+        ));
+    } else if rand_value < 45 {
+        enemies.push(Enemy::new(
+            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+            EnemyType::Skeleton,
+            flipped,
+        ));
+    } else if rand_value < 60 {
+        enemies.push(Enemy::new(
+            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+            EnemyType::Demon,
+            flipped,
+        ));
+    } else {
+        enemies.push(Enemy::new(
+            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+            EnemyType::Slime,
+            flipped,
+        ));
+    }
+}
 
 impl Level {
     fn empty_room(&mut self, room_x: u32, room_y: u32) {
@@ -62,71 +110,13 @@ impl Level {
                 SpawnType::MaybeEnemy => {
                     //Spawn enemy
                     let rand_value = rng.gen::<u32>() % 100;
-                    let flipped = rng.gen::<bool>();
-
-                    if rand_value < 30 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Slime,
-                            flipped,
-                        ));
-                    } else if rand_value < 40 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Eyeball,
-                            flipped,
-                        ));
-                    } else if rand_value < 50 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Chicken,
-                            flipped,
-                        ));
-                    } else if rand_value < 60 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Skeleton,
-                            flipped,
-                        ));
+                    if rand_value < 60 {
+                        spawn_enemy(enemies, rng, spawn_location, room_x, room_y);
                     }
                 }
                 SpawnType::Enemy => {
-                    let rand_value = rng.gen::<u32>() % 100;
-                    let flipped = rng.gen::<bool>();
                     //Spawn enemy
-                    if rand_value < 15 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Eyeball,
-                            flipped,
-                        ));
-                    } else if rand_value < 30 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Chicken,
-                            flipped,
-                        ));
-                    } else if rand_value < 45 {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Skeleton,
-                            flipped,
-                        ));
-                    } else {
-                        enemies.push(Enemy::new(
-                            (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
-                            (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
-                            EnemyType::Slime,
-                            flipped,
-                        ));
-                    }
+                    spawn_enemy(enemies, rng, spawn_location, room_x, room_y);
                 }
             }
         }

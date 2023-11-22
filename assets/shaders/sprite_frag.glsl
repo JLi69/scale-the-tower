@@ -11,7 +11,7 @@ uniform bool uFlipped;
 
 void main()
 {
-	vec2 scaledTc = vec2(tc.x, 1.0 - tc.y) * uTexScale;
+	vec2 scaledTc = vec2(max(min(tc.x, 0.99), 0.01), max(min(1.0 - tc.y, 0.99), 0.01)) * uTexScale;
 	if(uFlipped)
 		scaledTc.x = uTexScale - scaledTc.x;
 

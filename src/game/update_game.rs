@@ -1,5 +1,9 @@
-use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, State};
-use crate::level::Tile;
+use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, Projectile, State};
+use crate::{
+    level::{transparent, Tile},
+    sprite::Sprite,
+};
+use cgmath::vec2;
 
 const MAX_SAFE_FALL_SPEED: f32 = 14.0;
 const BOUNCE_SPEED: f32 = -0.5;
@@ -14,12 +18,16 @@ impl State {
             }
 
             self.enemies[i].sprite.update_animation_frame(dt);
-            self.enemies[i].update(dt, &self.level, &player_pos);
+            self.enemies[i].update(dt, &self.level, &player_pos, &mut self.projectiles);
 
             //Melee attack
             if let Some(hitbox) = self.player.attack_hitbox() {
                 if hitbox.intersecting(&self.enemies[i].sprite) {
                     self.enemies[i].apply_damage(1);
+
+                    if self.enemies[i].health <= 0 {
+                        self.player.score += self.enemies[i].score();
+                    }
                 }
             }
 
@@ -28,12 +36,24 @@ impl State {
                 && self.player_position().y > self.enemies[i].sprite.position.y
                 && self.player_velocity().y < -PLAYER_CLIMB_SPEED
                 && !self.player.climbing()
+                && self.player.player_health > 0
             {
                 self.enemies[i].apply_damage(1);
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
+
+                if self.enemies[i].health <= 0 {
+                    self.player.score += self.enemies[i].score();
+                }
             } else if self.player.player_spr.intersecting(&self.enemies[i].sprite) {
                 self.player.apply_damage(self.enemies[i].get_damage());
                 self.enemies[i].reset_attack_cooldown();
+            }
+
+            for (projectile, sprite) in &mut self.projectiles {
+                if self.enemies[i].sprite.intersecting(sprite) {
+                    self.enemies[i].health = 0;
+                    *projectile = Projectile::Destroyed;
+                }
             }
         }
 
@@ -43,7 +63,6 @@ impl State {
             let mut index = None;
             for (i, enemy) in self.enemies.iter().enumerate() {
                 if enemy.health <= 0 {
-                    self.player.score += enemy.score();
                     stop = false;
                     index = Some(i);
                 }
@@ -51,6 +70,62 @@ impl State {
 
             if let Some(i) = index {
                 self.enemies.remove(i);
+            }
+        }
+    }
+
+    pub fn update_projectiles(&mut self, dt: f32) {
+        let player_pos = self.player_position();
+        for (projectile, sprite) in &mut self.projectiles {
+            if (sprite.position.y - player_pos.y).abs() > MAX_UPDATE_DISTANCE {
+                continue;
+            }
+
+            if sprite.position.x.abs() >= 64.0 {
+                *projectile = Projectile::Destroyed;
+            }
+
+            let top_left = vec2(sprite.position.x, sprite.position.y)
+                - vec2(
+                    sprite.dimensions.x.ceil() / 2.0 + 1.0,
+                    sprite.dimensions.y.ceil() / 2.0 + 1.0,
+                );
+            let bot_right = vec2(sprite.position.x, sprite.position.y)
+                + vec2(
+                    sprite.dimensions.x.ceil() / 2.0 + 1.0,
+                    sprite.dimensions.y.ceil() / 2.0 + 1.0,
+                );
+            let (top_left_x, top_left_y) = (top_left.x.floor() as i32, top_left.y.floor() as i32);
+            let (bot_right_x, bot_right_y) = (bot_right.x.ceil() as i32, bot_right.y.ceil() as i32);
+            for x in top_left_x..bot_right_x {
+                for y in top_left_y..bot_right_y {
+                    if !self.level.out_of_bounds(x, y)
+                        && !transparent(self.level.get_tile(x as u32, y as u32))
+                    {
+                        let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                        if sprite.intersecting(&hitbox) {
+                            *projectile = Projectile::Destroyed;
+                        }
+                    }
+                }
+            }
+
+            sprite.position += sprite.velocity * dt;
+        }
+
+        let mut stop = false;
+        while !stop {
+            stop = true;
+            let mut index = None;
+            for (i, (projectile, _)) in self.projectiles.iter().enumerate() {
+                if *projectile == Projectile::Destroyed {
+                    stop = false;
+                    index = Some(i);
+                }
+            }
+
+            if let Some(i) = index {
+                self.projectiles.remove(i);
             }
         }
     }
@@ -87,8 +162,17 @@ impl State {
         self.level.update_interactive_tiles(&mut self.player);
         self.player.damage_cooldown -= dt;
 
+        for (projectile, sprite) in &mut self.projectiles {
+            if self.player.player_spr.intersecting(sprite) {
+                self.player.apply_damage(1);
+                *projectile = Projectile::Destroyed;
+            }
+        }
+
         //Update enemies
         self.update_enemies(dt);
+        //Update projectiles
+        self.update_projectiles(dt);
     }
 
     pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {

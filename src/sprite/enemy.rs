@@ -1,14 +1,15 @@
 use super::Sprite;
 use crate::{
-    game::DAMAGE_COOLDOWN, game::GRAVITY, gfx::VertexArrayObject, level::transparent, level::Level,
-    shader::ShaderProgram,
+    game::Projectile, game::DAMAGE_COOLDOWN, game::GRAVITY, gfx::VertexArrayObject,
+    level::transparent, level::Level, shader::ShaderProgram,
 };
 use cgmath::{vec2, Matrix4, Vector2};
 
 mod chicken;
+mod demon;
 mod eyeball;
-mod slime;
 mod skeleton;
+mod slime;
 
 const ENEMY_ATTACK_COOLDOWN: f32 = 1.0;
 
@@ -24,6 +25,7 @@ pub enum EnemyType {
     Eyeball,
     Chicken,
     Skeleton,
+    Demon,
 }
 
 pub struct Enemy {
@@ -47,6 +49,7 @@ impl Enemy {
             EnemyType::Eyeball => spr.set_animation(1.0, 0, 1),
             EnemyType::Chicken => spr.set_animation(1.0, 2, 3),
             EnemyType::Skeleton => spr.set_animation(1.0, 2, 3),
+            EnemyType::Demon => spr.set_animation(1.0, 2, 3),
         }
 
         match enemy {
@@ -54,6 +57,7 @@ impl Enemy {
             EnemyType::Eyeball => spr.velocity.x = 1.0,
             EnemyType::Chicken => spr.velocity.x = 1.5,
             EnemyType::Skeleton => spr.velocity.x = 0.7,
+            EnemyType::Demon => spr.velocity.x = 1.1,
         }
 
         let enemy_hp = match enemy {
@@ -61,6 +65,7 @@ impl Enemy {
             EnemyType::Eyeball => 2,
             EnemyType::Chicken => 3,
             EnemyType::Skeleton => 3,
+            EnemyType::Demon => 4,
         };
 
         spr.flipped = flipped;
@@ -118,6 +123,13 @@ impl Enemy {
                     "uTexOffset",
                     1.0 / 8.0 * self.sprite.current_frame() as f32 + 4.0 / 8.0,
                     2.0 / 8.0,
+                );
+            }
+            EnemyType::Demon => {
+                shader_program.uniform_vec2f(
+                    "uTexOffset",
+                    1.0 / 8.0 * self.sprite.current_frame() as f32 + 4.0 / 8.0,
+                    3.0 / 8.0,
                 );
             }
         }
@@ -194,7 +206,13 @@ impl Enemy {
         }
     }
 
-    pub fn update(&mut self, dt: f32, level: &Level, player_pos: &Vector2<f32>) {
+    pub fn update(
+        &mut self,
+        dt: f32,
+        level: &Level,
+        player_pos: &Vector2<f32>,
+        projectiles: &mut Vec<(Projectile, Sprite)>,
+    ) {
         self.sprite.flipped = self.sprite.velocity.x < 0.0;
 
         match self.enemy_type {
@@ -202,6 +220,7 @@ impl Enemy {
             EnemyType::Eyeball => self.update_eyeball(dt, level, player_pos),
             EnemyType::Chicken => self.update_chicken(dt, level, player_pos),
             EnemyType::Skeleton => self.update_skeleton(dt, level, player_pos),
+            EnemyType::Demon => self.update_demon(dt, level, player_pos, projectiles),
         }
 
         self.damage_cooldown -= dt;
@@ -215,7 +234,7 @@ impl Enemy {
 
         match self.enemy_type {
             EnemyType::Slime | EnemyType::Eyeball | EnemyType::Chicken => 1,
-            EnemyType::Skeleton => 2,
+            EnemyType::Skeleton | EnemyType::Demon => 2,
         }
     }
 
@@ -232,6 +251,7 @@ impl Enemy {
             EnemyType::Eyeball => 20,
             EnemyType::Chicken => 30,
             EnemyType::Skeleton => 40,
+            EnemyType::Demon => 60,
         }
     }
 

@@ -183,8 +183,8 @@ fn main() -> Result<(), String> {
         "assets/shaders/rect_frag.glsl",
     );
     let background_shader = shader::program_from_vert_and_frag(
-        "assets/shaders/rect_vert.glsl", 
-        "assets/shaders/background_frag.glsl"
+        "assets/shaders/rect_vert.glsl",
+        "assets/shaders/background_frag.glsl",
     );
     //Load Textures
     let sprite_textures = gfx::load_texture("assets/textures/sprites.png");
@@ -235,7 +235,11 @@ fn main() -> Result<(), String> {
             GameScreen::MainMenu | GameScreen::HighScores | GameScreen::AboutScreen => {
                 tile_textures.bind();
                 background_shader.use_program();
-                background_shader.uniform_vec2f("uScreenDimensions", win_info.win_w, win_info.win_h);
+                background_shader.uniform_vec2f(
+                    "uScreenDimensions",
+                    win_info.win_w,
+                    win_info.win_h,
+                );
                 rect_vao.draw_arrays();
             }
             GameScreen::Game | GameScreen::Paused | GameScreen::WinScreen => {
@@ -258,6 +262,7 @@ fn main() -> Result<(), String> {
                 );
                 rect_vao.bind();
                 state.display_enemies(&rect_vao, &sprite_shader);
+                state.display_projectiles(&rect_vao, &sprite_shader);
             }
             GameScreen::GameOver => {
                 //Display level
@@ -276,6 +281,7 @@ fn main() -> Result<(), String> {
                 );
                 rect_vao.bind();
                 state.display_enemies(&rect_vao, &sprite_shader);
+                state.display_projectiles(&rect_vao, &sprite_shader);
             }
         }
 
@@ -322,7 +328,7 @@ fn main() -> Result<(), String> {
 
                 win_screen.display(&rect_vao, &text_shader, &win_info);
             }
-            GameScreen::HighScores => { 
+            GameScreen::HighScores => {
                 hiscore::display_hiscores(&rect_vao, &text_shader, &highscores);
                 hiscore_menu.display(&rect_vao, &text_shader, &win_info);
             }
@@ -412,6 +418,7 @@ fn main() -> Result<(), String> {
             state.check_gameover(&mut highscores);
         } else if state.game_screen == GameScreen::GameOver {
             state.update_enemies(dt);
+            state.update_projectiles(dt);
         }
 
         //Update the animation timer

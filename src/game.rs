@@ -78,7 +78,7 @@ impl Player {
 
     //Returns None if the attack cooldown isn't at 0 yet
     pub fn attack_hitbox(&self) -> Option<Sprite> {
-        if self.attack_timer < 0.0 {
+        if self.attack_timer < 0.0 || self.player_health <= 0 {
             return None;
         }
 
@@ -100,6 +100,12 @@ impl Player {
     }
 }
 
+#[derive(Eq, PartialEq, Copy, Clone)]
+pub enum Projectile {
+    Fireball,
+    Destroyed,
+}
+
 //Structure to store the current state of the application and allow us
 //to pass it to different functions so that it can be modified
 pub struct State {
@@ -110,6 +116,7 @@ pub struct State {
     pub left_mouse_held: bool,
     pub new_highscore: bool,
     pub enemies: Vec<Enemy>,
+    pub projectiles: Vec<(Projectile, Sprite)>,
 }
 
 impl State {
@@ -122,6 +129,7 @@ impl State {
             left_mouse_held: false,
             new_highscore: false,
             enemies: vec![],
+            projectiles: vec![],
         }
     }
 

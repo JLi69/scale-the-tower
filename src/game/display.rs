@@ -1,4 +1,4 @@
-use super::{Player, State, ATTACK_TIMER};
+use super::{Player, Projectile, State, ATTACK_TIMER};
 use crate::{
     gfx::VertexArrayObject, level::display_level::SPRITE_RENDER_DISTANCE, shader::ShaderProgram, ui,
 };
@@ -100,6 +100,34 @@ impl State {
             }
 
             enemy.display(rect_vao, shader_program);
+        }
+    }
+
+    pub fn display_projectiles(
+        &self,
+        rect_vao: &VertexArrayObject,
+        shader_program: &ShaderProgram,
+    ) {
+        for (projectile_type, spr) in &self.projectiles {
+            if (spr.position.y - self.player_position().y).abs() > SPRITE_RENDER_DISTANCE {
+                continue;
+            }
+
+            //Apply texture
+            match *projectile_type {
+                Projectile::Fireball => {
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        spr.position.x,
+                        spr.position.y,
+                        0.0,
+                    )) * Matrix4::from_scale(0.5 * 0.3);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    shader_program.uniform_vec2f("uTexOffset", 3.0 / 8.0, 3.0 / 8.0);
+                }
+                _ => {}
+            }
+
+            rect_vao.draw_arrays();
         }
     }
 }

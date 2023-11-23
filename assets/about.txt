@@ -8,6 +8,7 @@ CONTROLS
 Left/Right Arrows: Move around
 Up Arrow: Jump
 Space: Attack
+1/2: Sword/Bow
 
 CREDITS
 Art/programming - NotJL

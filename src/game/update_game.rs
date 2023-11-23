@@ -155,6 +155,10 @@ impl State {
 
     pub fn update_projectiles(&mut self, dt: f32) {
         let player_pos = self.player_position();
+
+        //use this to spawn fire particles
+        let mut destroyed_fireballs = vec![];
+
         for (projectile, sprite) in &mut self.projectiles {
             if (sprite.position.y - player_pos.y).abs() > MAX_UPDATE_DISTANCE {
                 continue;
@@ -183,6 +187,9 @@ impl State {
                     {
                         let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                         if sprite.intersecting(&hitbox) {
+                            if *projectile == Projectile::Fireball {
+                                destroyed_fireballs.push(sprite.position); 
+                            }
                             *projectile = Projectile::Destroyed;
                         }
                     }
@@ -190,6 +197,10 @@ impl State {
             }
 
             sprite.position += sprite.velocity * dt;
+        }
+
+        for fireball in destroyed_fireballs {
+            self.add_particles(fireball.x, fireball.y, 0.2, 4.0, ParticleType::Fire, 4);
         }
 
         let mut stop = false;
@@ -218,6 +229,16 @@ impl State {
         if falling && !self.player.falling() && velocity_y < -MAX_SAFE_FALL_SPEED {
             self.player
                 .apply_damage(-((velocity_y + MAX_SAFE_FALL_SPEED) / 12.0).floor() as i32);
+        
+            let player_pos = self.player_position();
+            self.add_particles(
+                player_pos.x,
+                player_pos.y,
+                0.15,
+                3.0,
+                ParticleType::Blood,
+                8,
+            );
         }
         //Kill player instantly upon contact with lava
         if self

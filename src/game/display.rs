@@ -63,7 +63,7 @@ impl Player {
             sprite_shader.uniform_bool("uFlipped", self.player_spr.flipped);
             let transform_matrix =
                 Matrix4::from_translation(cgmath::vec3(self.player_spr.position.x + offset, self.player_spr.position.y - 0.1, 0.0))
-                * Matrix4::from_scale(0.25);
+                * Matrix4::from_scale(0.3);
             sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);
             sprite_shader.uniform_vec2f("uTexOffset", 2.0 / 8.0, 3.0 / 8.0);
             rect_vao.draw_arrays();

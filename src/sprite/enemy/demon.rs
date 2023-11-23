@@ -51,7 +51,8 @@ impl Enemy {
                 self.sprite.set_animation(1.0, 2, 3);
                 if collided {
                     self.state = EnemyState::Idle;
-                    self.idle_cooldown = 0.0;
+                    self.idle_cooldown = 2.0;
+                    self.sprite.velocity.x *= -1.0;
                 }
 
                 if self.idle_cooldown < -2.0 {
@@ -86,7 +87,6 @@ impl Enemy {
                         self.state = EnemyState::Chase;
                     } else {
                         self.state = EnemyState::Wander;
-                        self.sprite.velocity.x *= -1.0;
                     }
                 }
 

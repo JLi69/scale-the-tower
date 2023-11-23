@@ -11,6 +11,7 @@ use super::Sprite;
 #[derive(Copy, Clone)]
 pub enum ParticleType {
     Blood,
+    Fire,
 }
 
 #[derive(Copy, Clone)]
@@ -28,6 +29,7 @@ impl Particle {
 
         let time = match particle {
             ParticleType::Blood => 3.0,
+            ParticleType::Fire => 1.0,
         };
 
         Self {
@@ -143,6 +145,9 @@ impl Particle {
         match self.particle_type {
             ParticleType::Blood => {
                 shader_program.uniform_vec2f("uTexOffset", 0.0, 4.0 / 8.0);
+            }
+            ParticleType::Fire => { 
+                shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 4.0 / 8.0);
             }
         }
 

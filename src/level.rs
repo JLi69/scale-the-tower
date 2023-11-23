@@ -40,10 +40,6 @@ pub enum BackgroundTile {
     Painting2,
     BigWindowTop,
     BigWindowBottom,
-    Map1,
-    Map2,
-    Map3,
-    Map4,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

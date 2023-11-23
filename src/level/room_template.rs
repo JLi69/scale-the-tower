@@ -64,10 +64,6 @@ fn ascii_to_background_tile(ch: u8) -> Option<BackgroundTile> {
         b'w' => Some(BackgroundTile::Window),
         b'W' => Some(BackgroundTile::BarredWindow),
         b'p' => Some(BackgroundTile::Painting1),
-        b'1' => Some(BackgroundTile::Map1),
-        b'2' => Some(BackgroundTile::Map2),
-        b'3' => Some(BackgroundTile::Map3),
-        b'4' => Some(BackgroundTile::Map4),
         b'*' => Some(BackgroundTile::BigWindowTop),
         _ => None,
     }

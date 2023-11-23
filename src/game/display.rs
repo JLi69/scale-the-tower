@@ -103,7 +103,10 @@ impl State {
         }
     }
 
+    //Display particles
     pub fn display_particles(&self, rect_vao: &VertexArrayObject, shader_program: &ShaderProgram) {
+        shader_program.uniform_bool("uFlipped", false);
+
         for particle in &self.particles {
             if (particle.sprite.position.y - self.player_position().y).abs()
                 > SPRITE_RENDER_DISTANCE
@@ -115,6 +118,7 @@ impl State {
         }
     }
 
+    //Display projectiles
     pub fn display_projectiles(
         &self,
         rect_vao: &VertexArrayObject,
@@ -136,7 +140,7 @@ impl State {
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     shader_program.uniform_vec2f("uTexOffset", 3.0 / 8.0, 3.0 / 8.0);
                 }
-                _ => {}
+                Projectile::Destroyed => continue,
             }
 
             rect_vao.draw_arrays();

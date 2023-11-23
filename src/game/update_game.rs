@@ -23,12 +23,14 @@ impl State {
         count: i32,
     ) {
         for _ in 0..count {
+            let angle = (2.0 * std::f32::consts::PI) * rand::random::<f32>();
+            let dist = rand::random::<f32>() * 0.5;
             self.particles.push(Particle::new(
-                x,
-                y,
+                x + angle.cos() * dist,
+                y + angle.sin() * dist,
                 sz,
                 speed,
-                (2.0 * std::f32::consts::PI) * rand::random::<f32>(),
+                angle,
                 particle,
             ));
         }
@@ -255,7 +257,7 @@ impl State {
                 0.15,
                 3.0,
                 ParticleType::Blood,
-                32,
+                8,
             );
         }
 

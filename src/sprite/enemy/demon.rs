@@ -94,7 +94,7 @@ impl Enemy {
                 if self.attack_cooldown < 0.0 && self.idle_cooldown > 0.0 {
                     self.sprite.animation_timer = 0.75;
                     let mut sprite = Sprite::new(
-                        self.sprite.position.x + self.sprite.velocity.x.signum() * 0.7,
+                        self.sprite.position.x + self.sprite.velocity.x.signum() * (0.45 + 0.2),
                         self.sprite.position.y - 0.1,
                         0.3,
                         0.3,

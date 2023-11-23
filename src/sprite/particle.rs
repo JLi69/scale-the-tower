@@ -83,6 +83,9 @@ impl Particle {
 
                 if !transparent(level.get_tile(x as u32, y as u32)) {
                     let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
+                    if self.sprite.intersecting(&hitbox) {
+                        self.sprite.velocity.x = 0.0;
+                    }
                     self.sprite.uncollide_x(&hitbox);
                 }
             }
@@ -128,8 +131,6 @@ impl Particle {
     }
 
     pub fn display(&self, rect_vao: &VertexArrayObject, shader_program: &ShaderProgram) {
-        shader_program.uniform_bool("uFlipped", false);
-
         let transform_matrix =
             Matrix4::from_translation(vec3(self.sprite.position.x, self.sprite.position.y, 0.0))
                 * Matrix4::from_nonuniform_scale(

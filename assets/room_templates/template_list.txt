@@ -5,3 +5,6 @@ room4.txt
 room5.txt
 room6.txt
 room7.txt
+room8.txt
+room9.txt
+room10.txt

@@ -126,165 +126,50 @@ impl Level {
         //each vertex of the tile consists of 5 f32 values:
         //vertex position: (x, y, z) texture coordinates: (tx, ty)
         //Each array is structured [ x, y, z, tx, ty, ... ]
+        #[rustfmt::skip]
         let front_face = [
-            1.0f32,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            1.0,
-            1.0,
-            0.0,
-            0.0,
-            -1.0,
-            -1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            -1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            -1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
+            1.0f32, 1.0, 1.0,       1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, 1.0, 1.0,         0.0, 0.0,
+            -1.0, -1.0, 1.0,        0.0, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, 1.0,          1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, -1.0, 1.0,        0.0, 1.0 / TEXTURE_SCALE,
+            1.0, -1.0, 1.0,         1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
         ];
+        #[rustfmt::skip]
         let top_face = [
-            1.0f32,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            1.0,
-            -1.0,
-            0.0,
-            0.0,
-            -1.0,
-            1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
+            1.0f32, 1.0, 1.0,       1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, -1.0,         1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, 1.0, 1.0,         0.0, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, -1.0,         1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, 1.0, -1.0,        0.0, 0.0,
+            -1.0, 1.0, 1.0,         0.0, 1.0 / TEXTURE_SCALE,
         ];
+        #[rustfmt::skip]
         let bottom_face = [
-            -1.0f32,
-            -1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            -1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            1.0,
-            -1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
-            -1.0,
-            -1.0,
-            1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            -1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            0.0,
-            1.0,
-            -1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
+            -1.0f32, -1.0, 1.0,     0.0, 1.0 / TEXTURE_SCALE,
+            1.0, -1.0, -1.0,        1.0 / TEXTURE_SCALE, 0.0,
+            1.0, -1.0, 1.0,         1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
+            -1.0, -1.0, 1.0,        0.0, 1.0 / TEXTURE_SCALE,
+            -1.0, -1.0, -1.0,       0.0, 0.0,
+            1.0, -1.0, -1.0,        1.0 / TEXTURE_SCALE, 0.0,
         ];
+        #[rustfmt::skip]
         let left_face = [
-            -1.0f32,
-            1.0,
-            -1.0,
-            0.0,
-            0.0,
-            -1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            -1.0,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            -1.0,
-            -1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
+            -1.0f32, 1.0, -1.0,     0.0, 0.0,
+            -1.0, -1.0, -1.0,       0.0, 1.0 / TEXTURE_SCALE,
+            -1.0, 1.0, 1.0,         1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, 1.0, 1.0,         1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, -1.0, -1.0,       0.0, 1.0 / TEXTURE_SCALE,
+            -1.0, -1.0, 1.0,        1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
         ];
+        #[rustfmt::skip]
         let right_face = [
-            1.0f32,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            -1.0,
-            0.0,
-            0.0,
-            1.0,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            1.0,
-            -1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
+            1.0f32, -1.0, -1.0,     0.0, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, -1.0,         0.0, 0.0,
+            1.0, 1.0, 1.0,          1.0 / TEXTURE_SCALE, 0.0,
+            1.0, -1.0, 1.0,         1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
+            1.0, -1.0, -1.0,        0.0, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, 1.0,          1.0 / TEXTURE_SCALE, 0.0,
         ];
 
         //Add the front face vertices, these are never covered by another
@@ -321,37 +206,14 @@ impl Level {
     }
 
     pub fn add_background_vertices(&self, x: u32, y: u32, vertices: &mut Vec<f32>) {
+        #[rustfmt::skip]
         let background = [
-            1.0f32,
-            1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            1.0,
-            -1.0,
-            0.0,
-            0.0,
-            -1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            0.0,
-            -1.0,
-            -1.0,
-            -1.0,
-            0.0,
-            1.0 / TEXTURE_SCALE,
-            1.0,
-            -1.0,
-            -1.0,
-            1.0 / TEXTURE_SCALE,
-            1.0 / TEXTURE_SCALE,
+            1.0f32, 1.0, -1.0,      1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, 1.0, -1.0,        0.0, 0.0,
+            -1.0, -1.0, -1.0,       0.0, 1.0 / TEXTURE_SCALE,
+            1.0, 1.0, -1.0,         1.0 / TEXTURE_SCALE, 0.0,
+            -1.0, -1.0, -1.0,       0.0, 1.0 / TEXTURE_SCALE,
+            1.0, -1.0, -1.0,        1.0 / TEXTURE_SCALE, 1.0 / TEXTURE_SCALE,
         ];
 
         if !transparent(self.get_tile(x, y))
@@ -400,22 +262,6 @@ impl Level {
                 BackgroundTile::BarredWindow => {
                     vertices.push(background[i * VERTEX_LEN + 3] + 5.0 / TEXTURE_SCALE);
                     vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
-                }
-                BackgroundTile::Map1 => {
-                    vertices.push(background[i * VERTEX_LEN + 3]);
-                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
-                }
-                BackgroundTile::Map2 => {
-                    vertices.push(background[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
-                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
-                }
-                BackgroundTile::Map3 => {
-                    vertices.push(background[i * VERTEX_LEN + 3]);
-                    vertices.push(background[i * VERTEX_LEN + 4] + 6.0 / TEXTURE_SCALE);
-                }
-                BackgroundTile::Map4 => {
-                    vertices.push(background[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
-                    vertices.push(background[i * VERTEX_LEN + 4] + 6.0 / TEXTURE_SCALE);
                 }
                 BackgroundTile::BigWindowTop => {
                     vertices.push(background[i * VERTEX_LEN + 3] + 3.0 / TEXTURE_SCALE);

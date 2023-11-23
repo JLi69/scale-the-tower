@@ -1,4 +1,4 @@
-use super::{Player, Projectile, State, ATTACK_TIMER};
+use super::{Player, Projectile, State, ATTACK_TIMER, Weapon};
 use crate::{
     gfx::VertexArrayObject, level::display_level::SPRITE_RENDER_DISTANCE, shader::ShaderProgram, ui,
 };
@@ -54,6 +54,19 @@ impl Player {
             unsafe {
                 gl::Enable(gl::CULL_FACE);
             }
+        } else if self.weapon == Weapon::Bow {
+            let offset = if self.player_spr.flipped {
+                0.1f32
+            } else {
+                -0.1 
+            };
+            sprite_shader.uniform_bool("uFlipped", self.player_spr.flipped);
+            let transform_matrix =
+                Matrix4::from_translation(cgmath::vec3(self.player_spr.position.x + offset, self.player_spr.position.y - 0.1, 0.0))
+                * Matrix4::from_scale(0.25);
+            sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);
+            sprite_shader.uniform_vec2f("uTexOffset", 2.0 / 8.0, 3.0 / 8.0);
+            rect_vao.draw_arrays();
         }
     }
 
@@ -79,6 +92,14 @@ impl Player {
             format!("height:{}m", self.player_spr.position.y.round() as i32 - 1).as_bytes(),
             -win_w as f32 / 2.0 + 24.0,
             win_h as f32 / 2.0 - 72.0,
+            8.0,
+        );
+        ui::display_ascii_text(
+            rect_vao,
+            text_shader,
+            format!("arrows:{}", self.arrows).as_bytes(),
+            -win_w as f32 / 2.0 + 24.0,
+            win_h as f32 / 2.0 - 96.0,
             8.0,
         );
         ui::display_health_bar(
@@ -129,6 +150,7 @@ impl State {
                 continue;
             }
 
+            shader_program.uniform_bool("uFlipped", false);
             //Apply texture
             match *projectile_type {
                 Projectile::Fireball => {
@@ -139,6 +161,20 @@ impl State {
                     )) * Matrix4::from_scale(0.5 * 0.3);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     shader_program.uniform_vec2f("uTexOffset", 3.0 / 8.0, 3.0 / 8.0);
+                }
+                Projectile::Arrow => {
+                    let angle = if spr.flipped {
+                        std::f32::consts::PI * 3.0 / 4.0
+                    } else {
+                        -std::f32::consts::PI / 4.0
+                    };
+                    let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                        spr.position.x,
+                        spr.position.y,
+                        0.0,
+                    )) * Matrix4::from_angle_z(Rad(angle)) * Matrix4::from_scale(0.5 * 0.5);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 3.0 / 8.0);
                 }
                 Projectile::Destroyed => continue,
             }

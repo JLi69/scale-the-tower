@@ -28,6 +28,12 @@ pub enum GameScreen {
     AboutScreen,
 }
 
+#[derive(Eq, PartialEq)]
+pub enum Weapon {
+    Sword,
+    Bow,
+}
+
 pub struct Player {
     pub player_spr: Sprite,
     pub score: u32,
@@ -38,6 +44,8 @@ pub struct Player {
     climbing: bool,
     attack_cooldown: f32,
     attack_timer: f32,
+    pub arrows: u32,
+    pub weapon: Weapon,
 }
 
 impl Player {
@@ -52,11 +60,14 @@ impl Player {
             climbing: false,
             attack_cooldown: 0.0,
             attack_timer: 0.0,
+            arrows: 5,
+            weapon: Weapon::Sword,
         }
     }
 
+    //Returns true if we applied damage to the player, false otherwise
     pub fn apply_damage(&mut self, amount: i32) -> bool {
-        if self.damage_cooldown <= 0.0 && amount > 0 {
+        if self.damage_cooldown <= 0.0 && amount > 0 && self.player_health > 0 {
             self.player_health -= amount;
             self.damage_cooldown = DAMAGE_COOLDOWN;
             return true;
@@ -75,6 +86,28 @@ impl Player {
         self.climbing
     }
 
+    pub fn shoot(&mut self) -> Option<Sprite> {
+        if self.attack_cooldown <= 0.0 && self.arrows > 0 {
+            self.attack_cooldown = ATTACK_COOLDOWN;
+            self.attack_timer = ATTACK_TIMER;
+            let player_pos = self.player_spr.position;
+            let mut arrow = Sprite::new(player_pos.x, player_pos.y - 0.1, 0.5, 0.5);
+            
+            let (offset, vel_x) = if self.player_spr.flipped {
+                (-0.8, -6.0 + self.player_spr.velocity.x)
+            } else {
+                (0.8, 6.0 + self.player_spr.velocity.x)
+            };
+            arrow.position.x += offset;
+            arrow.velocity.x = vel_x;
+            arrow.flipped = self.player_spr.flipped;
+            self.arrows -= 1;
+
+            return Some(arrow);
+        }
+        None
+    }
+
     pub fn attack(&mut self) {
         if self.attack_cooldown <= 0.0 {
             self.attack_cooldown = ATTACK_COOLDOWN;
@@ -84,7 +117,8 @@ impl Player {
 
     //Returns None if the attack cooldown isn't at 0 yet
     pub fn attack_hitbox(&self) -> Option<Sprite> {
-        if self.attack_timer < 0.0 || self.player_health <= 0 {
+        if self.attack_timer < 0.0 || self.player_health <= 0 ||
+            self.weapon == Weapon::Bow {
             return None;
         }
 
@@ -109,6 +143,7 @@ impl Player {
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum Projectile {
     Fireball,
+    Arrow,
     Destroyed,
 }
 

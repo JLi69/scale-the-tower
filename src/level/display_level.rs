@@ -385,6 +385,46 @@ impl Level {
                     vertices.push(background[i * VERTEX_LEN + 3] + 2.0 / TEXTURE_SCALE);
                     vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
                 }
+                BackgroundTile::Window => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 4.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Painting1 => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 6.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Painting2 => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 7.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::BarredWindow => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 5.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Map1 => {
+                    vertices.push(background[i * VERTEX_LEN + 3]);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Map2 => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Map3 => {
+                    vertices.push(background[i * VERTEX_LEN + 3]);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 6.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::Map4 => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 1.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 6.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::BigWindowTop => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 3.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 4.0 / TEXTURE_SCALE);
+                }
+                BackgroundTile::BigWindowBottom => {
+                    vertices.push(background[i * VERTEX_LEN + 3] + 3.0 / TEXTURE_SCALE);
+                    vertices.push(background[i * VERTEX_LEN + 4] + 5.0 / TEXTURE_SCALE);
+                }
                 _ => {
                     vertices.push(background[i * VERTEX_LEN + 3]);
                     vertices.push(background[i * VERTEX_LEN + 4]);

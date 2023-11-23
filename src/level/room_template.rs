@@ -61,7 +61,15 @@ fn ascii_to_background_tile(ch: u8) -> Option<BackgroundTile> {
     match ch {
         b'b' => Some(BackgroundTile::BannerTop),
         b's' => Some(BackgroundTile::SkullDecoration),
-        _ => None, 
+        b'w' => Some(BackgroundTile::Window),
+        b'W' => Some(BackgroundTile::BarredWindow),
+        b'p' => Some(BackgroundTile::Painting1),
+        b'1' => Some(BackgroundTile::Map1),
+        b'2' => Some(BackgroundTile::Map2),
+        b'3' => Some(BackgroundTile::Map3),
+        b'4' => Some(BackgroundTile::Map4),
+        b'*' => Some(BackgroundTile::BigWindowTop),
+        _ => None,
     }
 }
 
@@ -84,11 +92,17 @@ impl RoomTemplate {
                 buf.iter()
                     .filter(|ch| ch.is_ascii_graphic())
                     .for_each(|ch| {
-                        template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air)); 
-                        template.set_background_tile(x, y, ascii_to_background_tile(*ch).unwrap_or(BackgroundTile::Wall));
-                        
+                        template.set_tile(x, y, ascii_to_tile(*ch).unwrap_or(Tile::Air));
+                        template.set_background_tile(
+                            x,
+                            y,
+                            ascii_to_background_tile(*ch).unwrap_or(BackgroundTile::Wall),
+                        );
+
                         if template.get_background_tile(x, y + 1) == BackgroundTile::BannerTop {
                             template.set_background_tile(x, y, BackgroundTile::BannerBottom);
+                        } else if template.get_background_tile(x, y + 1) == BackgroundTile::BigWindowTop {
+                            template.set_background_tile(x, y, BackgroundTile::BigWindowBottom);
                         }
 
                         if let Some(t) = ascii_to_spawn(*ch) {

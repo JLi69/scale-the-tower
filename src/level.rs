@@ -34,6 +34,16 @@ pub enum BackgroundTile {
     SkullDecoration,
     BannerTop,
     BannerBottom,
+    Window,
+    BarredWindow,
+    Painting1,
+    Painting2,
+    BigWindowTop,
+    BigWindowBottom,
+    Map1,
+    Map2,
+    Map3,
+    Map4,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq)]

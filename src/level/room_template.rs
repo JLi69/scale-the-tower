@@ -101,7 +101,9 @@ impl RoomTemplate {
 
                         if template.get_background_tile(x, y + 1) == BackgroundTile::BannerTop {
                             template.set_background_tile(x, y, BackgroundTile::BannerBottom);
-                        } else if template.get_background_tile(x, y + 1) == BackgroundTile::BigWindowTop {
+                        } else if template.get_background_tile(x, y + 1)
+                            == BackgroundTile::BigWindowTop
+                        {
                             template.set_background_tile(x, y, BackgroundTile::BigWindowBottom);
                         }
 

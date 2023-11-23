@@ -2,7 +2,9 @@ use crate::level::{Level, Tile};
 use cgmath::{vec2, Vector2};
 
 pub mod enemy;
+pub mod particle;
 
+#[derive(Copy, Clone)]
 pub struct Sprite {
     pub position: Vector2<f32>,
     pub dimensions: Vector2<f32>,

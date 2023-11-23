@@ -1,4 +1,7 @@
-use crate::{sprite::enemy::Enemy, Level, Sprite};
+use crate::{
+    sprite::{enemy::Enemy, particle::Particle},
+    Level, Sprite,
+};
 use cgmath::{Deg, Matrix4, Vector2};
 
 pub mod display;
@@ -52,11 +55,14 @@ impl Player {
         }
     }
 
-    pub fn apply_damage(&mut self, amount: i32) {
+    pub fn apply_damage(&mut self, amount: i32) -> bool {
         if self.damage_cooldown <= 0.0 && amount > 0 {
             self.player_health -= amount;
             self.damage_cooldown = DAMAGE_COOLDOWN;
+            return true;
         }
+
+        false
     }
 
     //Returns if the player is falling
@@ -117,6 +123,7 @@ pub struct State {
     pub new_highscore: bool,
     pub enemies: Vec<Enemy>,
     pub projectiles: Vec<(Projectile, Sprite)>,
+    pub particles: Vec<Particle>,
 }
 
 impl State {
@@ -130,6 +137,7 @@ impl State {
             new_highscore: false,
             enemies: vec![],
             projectiles: vec![],
+            particles: vec![],
         }
     }
 

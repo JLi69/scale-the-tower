@@ -103,6 +103,18 @@ impl State {
         }
     }
 
+    pub fn display_particles(&self, rect_vao: &VertexArrayObject, shader_program: &ShaderProgram) {
+        for particle in &self.particles {
+            if (particle.sprite.position.y - self.player_position().y).abs()
+                > SPRITE_RENDER_DISTANCE
+            {
+                continue;
+            }
+
+            particle.display(rect_vao, shader_program);
+        }
+    }
+
     pub fn display_projectiles(
         &self,
         rect_vao: &VertexArrayObject,

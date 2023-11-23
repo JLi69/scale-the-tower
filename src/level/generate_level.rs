@@ -2,7 +2,7 @@ use crate::sprite::enemy::{Enemy, EnemyType};
 
 use super::{
     room_template::{RoomTemplate, Spawn, SpawnType},
-    InteractiveTile, InteractiveTileSprite, Level, Tile, ROOM_SIZE, BackgroundTile,
+    BackgroundTile, InteractiveTile, InteractiveTileSprite, Level, Tile, ROOM_SIZE,
 };
 use rand::{rngs::ThreadRng, Rng};
 
@@ -113,7 +113,8 @@ impl Level {
                 self.set_background_tile(tile_x, tile_y, template.get_background_tile(x, y));
 
                 if self.get_background_tile(tile_x, tile_y) == BackgroundTile::Painting1
-                    && rng.gen::<bool>() {
+                    && rng.gen::<bool>()
+                {
                     self.set_background_tile(tile_x, tile_y, BackgroundTile::Painting2);
                 }
             }

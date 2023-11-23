@@ -239,11 +239,14 @@ impl Enemy {
         }
     }
 
-    pub fn apply_damage(&mut self, amount: i32) {
+    pub fn apply_damage(&mut self, amount: i32) -> bool {
         if self.damage_cooldown <= 0.0 {
             self.health -= amount;
             self.damage_cooldown = DAMAGE_COOLDOWN;
+            return true;
         }
+
+        false
     }
 
     pub fn score(&self) -> u32 {

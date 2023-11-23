@@ -1,7 +1,10 @@
 use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, Projectile, State};
 use crate::{
     level::{transparent, Tile},
-    sprite::Sprite,
+    sprite::{
+        particle::{Particle, ParticleType},
+        Sprite,
+    },
 };
 use cgmath::vec2;
 
@@ -10,6 +13,27 @@ const BOUNCE_SPEED: f32 = -0.5;
 const MAX_UPDATE_DISTANCE: f32 = 16.0;
 
 impl State {
+    fn add_particles(
+        &mut self,
+        x: f32,
+        y: f32,
+        sz: f32,
+        speed: f32,
+        particle: ParticleType,
+        count: i32,
+    ) {
+        for _ in 0..count {
+            self.particles.push(Particle::new(
+                x,
+                y,
+                sz,
+                speed,
+                (2.0 * std::f32::consts::PI) * rand::random::<f32>(),
+                particle,
+            ));
+        }
+    }
+
     pub fn update_enemies(&mut self, dt: f32) {
         let player_pos = self.player_position();
         for i in 0..self.enemies.len() {
@@ -20,10 +44,21 @@ impl State {
             self.enemies[i].sprite.update_animation_frame(dt);
             self.enemies[i].update(dt, &self.level, &player_pos, &mut self.projectiles);
 
+            let enemy_pos = self.enemies[i].sprite.position;
+
             //Melee attack
             if let Some(hitbox) = self.player.attack_hitbox() {
                 if hitbox.intersecting(&self.enemies[i].sprite) {
-                    self.enemies[i].apply_damage(1);
+                    if self.enemies[i].apply_damage(1) {
+                        self.add_particles(
+                            enemy_pos.x,
+                            enemy_pos.y,
+                            0.15,
+                            3.0,
+                            ParticleType::Blood,
+                            8,
+                        );
+                    }
 
                     if self.enemies[i].health <= 0 {
                         self.player.score += self.enemies[i].score();
@@ -39,14 +74,25 @@ impl State {
                 && !self.player.climbing()
                 && self.player.player_health > 0
             {
-                self.enemies[i].apply_damage(1);
+                if self.enemies[i].apply_damage(1) {
+                    self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 8);
+                }
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
 
                 if self.enemies[i].health <= 0 {
                     self.player.score += self.enemies[i].score();
                 }
             } else if self.player.player_spr.intersecting(&self.enemies[i].sprite) {
-                self.player.apply_damage(self.enemies[i].get_damage());
+                if self.player.apply_damage(self.enemies[i].get_damage()) {
+                    self.add_particles(
+                        self.player_position().x,
+                        self.player_position().y,
+                        0.15,
+                        3.0,
+                        ParticleType::Blood,
+                        8,
+                    );
+                }
                 self.enemies[i].reset_attack_cooldown();
             }
 
@@ -70,7 +116,37 @@ impl State {
             }
 
             if let Some(i) = index {
+                let enemy_pos = self.enemies[i].sprite.position;
+                self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 32);
                 self.enemies.remove(i);
+            }
+        }
+    }
+
+    pub fn update_particles(&mut self, dt: f32) {
+        let player_pos = self.player_position();
+        for particle in &mut self.particles {
+            if (particle.sprite.position.y - player_pos.y).abs() > MAX_UPDATE_DISTANCE {
+                continue;
+            }
+
+            particle.update(&self.level, dt);
+        }
+
+        //Delete particles
+        let mut stop = false;
+        while !stop {
+            stop = true;
+            let mut index = None;
+            for (i, particle) in self.particles.iter().enumerate() {
+                if particle.timer <= 0.0 {
+                    stop = false;
+                    index = Some(i);
+                }
+            }
+
+            if let Some(i) = index {
+                self.particles.remove(i);
             }
         }
     }
@@ -163,17 +239,32 @@ impl State {
         self.level.update_interactive_tiles(&mut self.player);
         self.player.damage_cooldown -= dt;
 
+        let player_pos = self.player_position();
+        let mut hit = false;
         for (projectile, sprite) in &mut self.projectiles {
             if self.player.player_spr.intersecting(sprite) {
-                self.player.apply_damage(1);
+                hit = self.player.apply_damage(1);
                 *projectile = Projectile::Destroyed;
             }
+        }
+
+        if hit {
+            self.add_particles(
+                player_pos.x,
+                player_pos.y,
+                0.15,
+                3.0,
+                ParticleType::Blood,
+                32,
+            );
         }
 
         //Update enemies
         self.update_enemies(dt);
         //Update projectiles
         self.update_projectiles(dt);
+        //Update particles
+        self.update_particles(dt);
     }
 
     pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {
@@ -181,6 +272,15 @@ impl State {
             || (self.player_position().y > self.level.h() as f32 - 1.0 && !self.player.falling())
         {
             if self.player.player_health <= 0 {
+                let player_pos = self.player_position();
+                self.add_particles(
+                    player_pos.x,
+                    player_pos.y,
+                    0.15,
+                    3.0,
+                    ParticleType::Blood,
+                    32,
+                );
                 self.game_screen = GameScreen::GameOver;
             } else {
                 self.player.player_spr.set_animation(1.0, 0, 0);

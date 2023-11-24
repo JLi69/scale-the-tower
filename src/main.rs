@@ -439,6 +439,12 @@ fn main() -> Result<(), String> {
             state.update_particles(dt);
         }
 
+        if state.game_screen == GameScreen::Game {
+            window.set_cursor_mode(glfw::CursorMode::Disabled);
+        } else {
+            window.set_cursor_mode(glfw::CursorMode::Normal);
+        }
+
         //Update the animation timer
         tile_animation_timer += dt;
         if tile_animation_timer > 2.0 {

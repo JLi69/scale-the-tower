@@ -12,5 +12,6 @@ Space: Attack
 
 CREDITS
 Art/programming - NotJL
+Sounds generated using sfxr
 Source code:
 https://github.com/JLi69/scale-the-tower

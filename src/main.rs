@@ -10,7 +10,9 @@ mod level;
 mod shader;
 mod sprite;
 mod ui;
+mod audio;
 
+use audio::SfxPlayer;
 use cgmath::Matrix4;
 use game::{hiscore, GameScreen, State};
 use game::{Projectile, Weapon};
@@ -18,6 +20,7 @@ use glfw::Context;
 use level::room_template;
 use level::Level;
 use sprite::Sprite;
+use crate::audio::sfx_ids;
 use std::{sync::mpsc::Receiver, time::Instant};
 
 fn get_glfw_window_info(window: &glfw::Window) -> ui::WindowInfo {
@@ -47,6 +50,7 @@ fn handle_key_input(
     action: glfw::Action,
     _modifiers: glfw::Modifiers,
     state: &mut State,
+    sfx_player: &SfxPlayer,
 ) {
     if action == glfw::Action::Press {
         if key == glfw::Key::Escape {
@@ -59,6 +63,7 @@ fn handle_key_input(
 
         if key == glfw::Key::Up && !state.player.falling() && !state.player.climbing() {
             state.set_player_velocity_y(game::player::PLAYER_JUMP_SPEED);
+            sfx_player.play(sfx_ids::JUMP);
         } else if key == glfw::Key::Up && state.player.climbing() {
             state.set_player_velocity_y(game::player::PLAYER_CLIMB_SPEED);
         } else if key == glfw::Key::Down && state.player.climbing() {
@@ -99,6 +104,7 @@ fn process_events(
     _window: &mut glfw::Window,
     events: &Receiver<(f64, glfw::WindowEvent)>,
     state: &mut State,
+    sfx_player: &SfxPlayer,
 ) {
     for (_, event) in glfw::flush_messages(events) {
         match event {
@@ -108,7 +114,7 @@ fn process_events(
             }
             //Key input
             glfw::WindowEvent::Key(key, scancode, action, modifiers) => {
-                handle_key_input(key, scancode, action, modifiers, state);
+                handle_key_input(key, scancode, action, modifiers, state, sfx_player);
             }
             _ => {}
         }
@@ -219,9 +225,11 @@ fn main() -> Result<(), String> {
     let mut tile_animation_timer = 0.0f32;
     let mut highscores = hiscore::load_highscores("hiscores");
 
+    let sfx_player = SfxPlayer::init();
+
     while !window.should_close() {
         let start = Instant::now();
-        process_events(&mut window, &events, &mut state);
+        process_events(&mut window, &events, &mut state, &sfx_player);
         let win_info = get_glfw_window_info(&window);
 
         let view_matrix = Matrix4::from_translation(cgmath::vec3(
@@ -424,6 +432,7 @@ fn main() -> Result<(), String> {
             };
 
             if let Some(action) = button_action {
+                sfx_player.play(sfx_ids::SELECT);
                 process_button_action(action, &mut state);
             }
         }
@@ -431,10 +440,10 @@ fn main() -> Result<(), String> {
         state.left_mouse_held = left_mouse_held;
 
         if state.game_screen == GameScreen::Game {
-            state.update_game_screen(dt);
-            state.check_gameover(&mut highscores);
+            state.update_game_screen(dt, &sfx_player);
+            state.check_gameover(&mut highscores, &sfx_player);
         } else if state.game_screen == GameScreen::GameOver {
-            state.update_enemies(dt);
+            state.update_enemies(dt, &sfx_player);
             state.update_projectiles(dt);
             state.update_particles(dt);
         }

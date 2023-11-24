@@ -4,7 +4,7 @@ use crate::{
     sprite::{
         particle::{Particle, ParticleType},
         Sprite,
-    },
+    }, audio::{SfxPlayer, sfx_ids},
 };
 use cgmath::vec2;
 
@@ -36,7 +36,7 @@ impl State {
         }
     }
 
-    pub fn update_enemies(&mut self, dt: f32) {
+    pub fn update_enemies(&mut self, dt: f32, sfx_player: &SfxPlayer) {
         let player_pos = self.player_position();
         for i in 0..self.enemies.len() {
             if (self.enemies[i].sprite.position.y - player_pos.y).abs() > MAX_UPDATE_DISTANCE {
@@ -60,6 +60,7 @@ impl State {
                             ParticleType::Blood,
                             8,
                         );
+                        sfx_player.play(sfx_ids::ENEMY_HIT);
                     }
 
                     if self.enemies[i].health <= 0 {
@@ -77,7 +78,8 @@ impl State {
                 && self.player.player_health > 0
             {
                 if self.enemies[i].apply_damage(1) {
-                    self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 8);
+                    self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 8); 
+                    sfx_player.play(sfx_ids::ENEMY_HIT);
                 }
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
 
@@ -94,6 +96,7 @@ impl State {
                         ParticleType::Blood,
                         8,
                     );
+                    sfx_player.play(sfx_ids::PLAYER_HIT);
                 }
                 self.enemies[i].reset_attack_cooldown();
             }
@@ -121,6 +124,7 @@ impl State {
                 let enemy_pos = self.enemies[i].sprite.position;
                 self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 32);
                 self.enemies.remove(i);
+                sfx_player.play(sfx_ids::EXPLODE);
             }
         }
     }
@@ -220,7 +224,7 @@ impl State {
         }
     }
 
-    pub fn update_game_screen(&mut self, dt: f32) {
+    pub fn update_game_screen(&mut self, dt: f32, sfx_player: &SfxPlayer) {
         //Update the player
         let falling = self.player.falling();
         let velocity_y = self.player.player_spr.velocity.y;
@@ -230,6 +234,7 @@ impl State {
             self.player
                 .apply_damage(-((velocity_y + MAX_SAFE_FALL_SPEED) / 12.0).floor() as i32);
 
+            sfx_player.play(sfx_ids::PLAYER_HIT);
             let player_pos = self.player_position();
             self.add_particles(
                 player_pos.x,
@@ -259,7 +264,7 @@ impl State {
         }
         self.player.player_spr.update_animation_frame(dt);
         self.player.update_animation_state();
-        self.level.update_interactive_tiles(&mut self.player);
+        self.level.update_interactive_tiles(&mut self.player, sfx_player);
         self.player.damage_cooldown -= dt;
 
         let player_pos = self.player_position();
@@ -272,6 +277,7 @@ impl State {
         }
 
         if hit {
+            sfx_player.play(sfx_ids::PLAYER_HIT);
             self.add_particles(
                 player_pos.x,
                 player_pos.y,
@@ -283,18 +289,19 @@ impl State {
         }
 
         //Update enemies
-        self.update_enemies(dt);
+        self.update_enemies(dt, sfx_player);
         //Update projectiles
         self.update_projectiles(dt);
         //Update particles
         self.update_particles(dt);
     }
 
-    pub fn check_gameover(&mut self, highscores: &mut Vec<u32>) {
+    pub fn check_gameover(&mut self, highscores: &mut Vec<u32>, sfx_player: &SfxPlayer) {
         if self.player.player_health <= 0
             || (self.player_position().y > self.level.h() as f32 - 1.0 && !self.player.falling())
         {
             if self.player.player_health <= 0 {
+                sfx_player.play(sfx_ids::EXPLODE);
                 let player_pos = self.player_position();
                 self.add_particles(
                     player_pos.x,
@@ -306,6 +313,7 @@ impl State {
                 );
                 self.game_screen = GameScreen::GameOver;
             } else {
+                sfx_player.play(sfx_ids::COIN);
                 self.player.player_spr.set_animation(1.0, 0, 0);
                 self.player.player_spr.update_animation_frame(0.0);
                 self.player.score += 500;

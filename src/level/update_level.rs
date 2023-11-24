@@ -1,9 +1,10 @@
 use super::{InteractiveTile, Level};
+use crate::audio::{SfxPlayer, sfx_ids};
 use crate::game::Player;
 use crate::sprite::Sprite;
 
 impl Level {
-    pub fn update_interactive_tiles(&mut self, player: &mut Player) {
+    pub fn update_interactive_tiles(&mut self, player: &mut Player, sfx_player: &SfxPlayer) {
         let mut delete_index = None;
 
         for (i, tile) in self.interactive_tiles.iter().enumerate() {
@@ -14,6 +15,7 @@ impl Level {
                     if player.player_spr.intersecting(&hitbox) {
                         player.score += 50;
                         delete_index = Some(i);
+                        sfx_player.play(sfx_ids::COIN);
                         break;
                     }
                 }
@@ -21,6 +23,7 @@ impl Level {
                     if player.player_spr.intersecting(&hitbox) {
                         player.score += 10;
                         delete_index = Some(i);
+                        sfx_player.play(sfx_ids::COIN);
                         break;
                     }
                 }
@@ -30,6 +33,7 @@ impl Level {
                     {
                         player.player_health += 1;
                         delete_index = Some(i);
+                        sfx_player.play(sfx_ids::POWERUP);
                         break;
                     }
                 }
@@ -38,6 +42,7 @@ impl Level {
                         player.max_player_health += 1;
                         player.player_health += 1;
                         delete_index = Some(i);
+                        sfx_player.play(sfx_ids::POWERUP);
                         break;
                     }
                 }
@@ -45,6 +50,7 @@ impl Level {
                     if player.player_spr.intersecting(&hitbox) {
                         player.arrows += 2;
                         delete_index = Some(i);
+                        sfx_player.play(sfx_ids::POWERUP);
                         break;
                     }
                 }

@@ -188,7 +188,7 @@ impl State {
                         let hitbox = Sprite::new(x as f32, y as f32, 1.0, 1.0);
                         if sprite.intersecting(&hitbox) {
                             if *projectile == Projectile::Fireball {
-                                destroyed_fireballs.push(sprite.position); 
+                                destroyed_fireballs.push(sprite.position);
                             }
                             *projectile = Projectile::Destroyed;
                         }
@@ -229,7 +229,7 @@ impl State {
         if falling && !self.player.falling() && velocity_y < -MAX_SAFE_FALL_SPEED {
             self.player
                 .apply_damage(-((velocity_y + MAX_SAFE_FALL_SPEED) / 12.0).floor() as i32);
-        
+
             let player_pos = self.player_position();
             self.add_particles(
                 player_pos.x,

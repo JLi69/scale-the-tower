@@ -60,7 +60,7 @@ impl Player {
             climbing: false,
             attack_cooldown: 0.0,
             attack_timer: 0.0,
-            arrows: 5,
+            arrows: 3,
             weapon: Weapon::Sword,
         }
     }
@@ -92,7 +92,7 @@ impl Player {
             self.attack_timer = ATTACK_TIMER;
             let player_pos = self.player_spr.position;
             let mut arrow = Sprite::new(player_pos.x, player_pos.y - 0.1, 0.5, 0.5);
-            
+
             let (offset, vel_x) = if self.player_spr.flipped {
                 (-0.8, -6.0 + self.player_spr.velocity.x)
             } else {
@@ -117,8 +117,7 @@ impl Player {
 
     //Returns None if the attack cooldown isn't at 0 yet
     pub fn attack_hitbox(&self) -> Option<Sprite> {
-        if self.attack_timer < 0.0 || self.player_health <= 0 ||
-            self.weapon == Weapon::Bow {
+        if self.attack_timer < 0.0 || self.player_health <= 0 || self.weapon == Weapon::Bow {
             return None;
         }
 

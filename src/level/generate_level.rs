@@ -157,6 +157,29 @@ impl Level {
                     //Spawn enemy
                     spawn_enemy(enemies, rng, spawn_location, room_x, room_y);
                 }
+                SpawnType::Pickup => {
+                    let rand_value = rng.gen::<u32>() % 16;
+
+                    if rand_value < 2 {
+                        self.interactive_tiles.push(InteractiveTileSprite {
+                            tile_type: InteractiveTile::HealthBoost,
+                            tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        });
+                    } else if rand_value < 5 {
+                        self.interactive_tiles.push(InteractiveTileSprite {
+                            tile_type: InteractiveTile::Heal,
+                            tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        });
+                    } else if rand_value < 10 {
+                        self.interactive_tiles.push(InteractiveTileSprite {
+                            tile_type: InteractiveTile::Arrows,
+                            tile_x: (spawn_location.tile_x + 1 + room_x * (ROOM_SIZE + 1)) as f32,
+                            tile_y: (spawn_location.tile_y + 1 + room_y * (ROOM_SIZE + 1)) as f32,
+                        });
+                    }
+                }
             }
         }
     }

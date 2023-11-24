@@ -54,7 +54,9 @@ impl Enemy {
             self.health = 0;
         }
 
-        if (self.sprite.position - player_pos).magnitude() < 5.0 {
+        if (self.sprite.position - player_pos).magnitude() < 6.0
+            && (self.sprite.position.y - player_pos.y).abs() < 2.0
+        {
             self.state = EnemyState::Chase;
             self.sprite.velocity.x = 1.4 * self.sprite.velocity.x.signum();
         }
@@ -81,7 +83,7 @@ impl Enemy {
                     self.sprite.velocity.x = -1.4;
                 }
 
-                if (self.sprite.position - player_pos).magnitude() > 5.0
+                if (self.sprite.position - player_pos).magnitude() > 6.0
                     && self.sprite.velocity.y <= 0.0
                 {
                     self.state = EnemyState::Wander;

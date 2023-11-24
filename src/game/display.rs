@@ -1,4 +1,4 @@
-use super::{Player, Projectile, State, ATTACK_TIMER, Weapon};
+use super::{Player, Projectile, State, Weapon, ATTACK_TIMER};
 use crate::{
     gfx::VertexArrayObject, level::display_level::SPRITE_RENDER_DISTANCE, shader::ShaderProgram, ui,
 };
@@ -58,12 +58,14 @@ impl Player {
             let offset = if self.player_spr.flipped {
                 0.1f32
             } else {
-                -0.1 
+                -0.1
             };
             sprite_shader.uniform_bool("uFlipped", self.player_spr.flipped);
-            let transform_matrix =
-                Matrix4::from_translation(cgmath::vec3(self.player_spr.position.x + offset, self.player_spr.position.y - 0.1, 0.0))
-                * Matrix4::from_scale(0.3);
+            let transform_matrix = Matrix4::from_translation(cgmath::vec3(
+                self.player_spr.position.x + offset,
+                self.player_spr.position.y - 0.1,
+                0.0,
+            )) * Matrix4::from_scale(0.3);
             sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);
             sprite_shader.uniform_vec2f("uTexOffset", 2.0 / 8.0, 3.0 / 8.0);
             rect_vao.draw_arrays();
@@ -172,7 +174,8 @@ impl State {
                         spr.position.x,
                         spr.position.y,
                         0.0,
-                    )) * Matrix4::from_angle_z(Rad(angle)) * Matrix4::from_scale(0.5 * 0.5);
+                    )) * Matrix4::from_angle_z(Rad(angle))
+                        * Matrix4::from_scale(0.5 * 0.5);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 3.0 / 8.0);
                 }

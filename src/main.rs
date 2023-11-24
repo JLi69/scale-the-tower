@@ -12,8 +12,8 @@ mod sprite;
 mod ui;
 
 use cgmath::Matrix4;
-use game::{Weapon, Projectile};
 use game::{hiscore, GameScreen, State};
+use game::{Projectile, Weapon};
 use glfw::Context;
 use level::room_template;
 use level::Level;
@@ -70,7 +70,7 @@ fn handle_key_input(
         } else if key == glfw::Key::Space {
             match state.player.weapon {
                 Weapon::Sword => state.player.attack(),
-                Weapon::Bow => { 
+                Weapon::Bow => {
                     let spr = state.player.shoot();
                     if let Some(arrow) = spr {
                         state.projectiles.push((Projectile::Arrow, arrow));
@@ -80,9 +80,9 @@ fn handle_key_input(
         }
 
         if key == glfw::Key::Num1 {
-            state.player.weapon = Weapon::Sword; 
+            state.player.weapon = Weapon::Sword;
         } else if key == glfw::Key::Num2 {
-            state.player.weapon = Weapon::Bow; 
+            state.player.weapon = Weapon::Bow;
         }
     } else if action == glfw::Action::Release {
         if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {

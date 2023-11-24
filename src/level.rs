@@ -46,6 +46,9 @@ pub enum BackgroundTile {
 pub enum InteractiveTile {
     SmallGold,
     Gold,
+    Heal,
+    HealthBoost,
+    Arrows,
 }
 
 #[derive(Copy, Clone)]

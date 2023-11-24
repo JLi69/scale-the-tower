@@ -17,6 +17,7 @@ pub enum SpawnType {
     Treasure,
     MaybeEnemy,
     Enemy,
+    Pickup,
 }
 
 pub struct Spawn {
@@ -53,6 +54,7 @@ fn ascii_to_spawn(ch: u8) -> Option<SpawnType> {
         b'G' => Some(SpawnType::Treasure),
         b'e' => Some(SpawnType::MaybeEnemy),
         b'E' => Some(SpawnType::Enemy),
+        b'?' => Some(SpawnType::Pickup),
         _ => None,
     }
 }

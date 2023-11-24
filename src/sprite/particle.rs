@@ -146,7 +146,7 @@ impl Particle {
             ParticleType::Blood => {
                 shader_program.uniform_vec2f("uTexOffset", 0.0, 4.0 / 8.0);
             }
-            ParticleType::Fire => { 
+            ParticleType::Fire => {
                 shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 4.0 / 8.0);
             }
         }

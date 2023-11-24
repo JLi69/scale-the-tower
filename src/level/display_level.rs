@@ -471,6 +471,33 @@ impl Level {
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();
                 }
+                InteractiveTile::Heal => {
+                    shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 2.0 / 8.0);
+
+                    let transform_matrix =
+                        Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                }
+                InteractiveTile::HealthBoost => {
+                    shader_program.uniform_vec2f("uTexOffset", 2.0 / 8.0, 2.0 / 8.0);
+
+                    let transform_matrix =
+                        Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                }
+                InteractiveTile::Arrows => {
+                    shader_program.uniform_vec2f("uTexOffset", 1.0 / 8.0, 3.0 / 8.0);
+
+                    let transform_matrix =
+                        Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
+                    shader_program.uniform_matrix4f("uTransform", &transform_matrix);
+                    cube_vao.draw_arrays();
+                }
             }
         }
     }

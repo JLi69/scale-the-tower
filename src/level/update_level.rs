@@ -24,6 +24,30 @@ impl Level {
                         break;
                     }
                 }
+                InteractiveTile::Heal => {
+                    if player.player_spr.intersecting(&hitbox)
+                        && player.player_health < player.max_player_health
+                    {
+                        player.player_health += 1;
+                        delete_index = Some(i);
+                        break;
+                    }
+                }
+                InteractiveTile::HealthBoost => {
+                    if player.player_spr.intersecting(&hitbox) {
+                        player.max_player_health += 1;
+                        player.player_health += 1;
+                        delete_index = Some(i);
+                        break;
+                    }
+                }
+                InteractiveTile::Arrows => {
+                    if player.player_spr.intersecting(&hitbox) {
+                        player.arrows += 2;
+                        delete_index = Some(i);
+                        break;
+                    }
+                }
             }
         }
 

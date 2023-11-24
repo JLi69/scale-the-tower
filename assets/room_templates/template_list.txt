@@ -8,3 +8,9 @@ room7.png
 room8.png
 room9.png
 room10.png
+room11.png
+room12.png
+room13.png
+room14.png
+room15.png
+room16.png

@@ -9,3 +9,6 @@ gl = "0.14.0"
 glfw = "0.53.0"
 png = "0.17.10"
 rand = "0.8.5"
+
+[target.'cfg(windows)'.build-dependencies]
+winres = "0.1"

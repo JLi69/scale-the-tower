@@ -1,7 +1,7 @@
 use super::{transparent, BackgroundTile, InteractiveTile, Level, Tile, CHUNK_SIZE};
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
-use cgmath::{Matrix4, Vector2};
+use cgmath::{Matrix4, Vector2, Rad};
 use std::mem::size_of;
 use std::os::raw::c_void;
 
@@ -426,6 +426,7 @@ impl Level {
         cube_vao: &VertexArrayObject,
         shader_program: &ShaderProgram,
         player_position: &Vector2<f32>,
+        timer: f32,
     ) {
         for tile in &self.interactive_tiles {
             if (tile.tile_y - player_position.y).abs() > SPRITE_RENDER_DISTANCE {
@@ -476,6 +477,7 @@ impl Level {
 
                     let transform_matrix =
                         Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_angle_y(Rad(timer * 2.0))
                             * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();
@@ -485,6 +487,7 @@ impl Level {
 
                     let transform_matrix =
                         Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_angle_y(Rad(timer * 2.0))
                             * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();
@@ -494,6 +497,7 @@ impl Level {
 
                     let transform_matrix =
                         Matrix4::from_translation(cgmath::vec3(tile.tile_x, tile.tile_y, 0.0))
+                            * Matrix4::from_angle_y(Rad(timer * 2.0))
                             * Matrix4::from_nonuniform_scale(0.5 * 0.6, 0.5 * 0.6, 0.0);
                     shader_program.uniform_matrix4f("uTransform", &transform_matrix);
                     cube_vao.draw_arrays();

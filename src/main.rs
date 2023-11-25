@@ -4,14 +4,15 @@
 extern crate gl;
 extern crate glfw;
 
+mod audio;
 mod game;
 mod gfx;
 mod level;
 mod shader;
 mod sprite;
 mod ui;
-mod audio;
 
+use crate::audio::sfx_ids;
 use audio::SfxPlayer;
 use cgmath::Matrix4;
 use game::{hiscore, GameScreen, State};
@@ -20,7 +21,6 @@ use glfw::Context;
 use level::room_template;
 use level::Level;
 use sprite::Sprite;
-use crate::audio::sfx_ids;
 use std::{sync::mpsc::Receiver, time::Instant};
 
 fn get_glfw_window_info(window: &glfw::Window) -> ui::WindowInfo {
@@ -222,7 +222,7 @@ fn main() -> Result<(), String> {
     let about_screen = ui::Menu::create_about_screen();
 
     let mut dt = 0.0f32;
-    let mut tile_animation_timer = 0.0f32;
+    let mut animation_timer = 0.0f32;
     let mut highscores = hiscore::load_highscores("hiscores");
 
     let sfx_player = SfxPlayer::init();
@@ -248,7 +248,7 @@ fn main() -> Result<(), String> {
         level_shader.uniform_matrix4f("uView", &view_matrix);
         let transform_matrix = Matrix4::from_scale(0.5);
         level_shader.uniform_matrix4f("uTransform", &transform_matrix);
-        level_shader.uniform_float("uAnimationTimer", tile_animation_timer);
+        level_shader.uniform_float("uAnimationTimer", (animation_timer).fract() * 2.0);
         sprite_shader.use_program();
         sprite_shader.uniform_matrix4f("uPerspective", &state.perspective);
         sprite_shader.uniform_matrix4f("uView", &view_matrix);
@@ -282,6 +282,7 @@ fn main() -> Result<(), String> {
                     &cube_vao,
                     &sprite_shader,
                     &state.player_position(),
+                    animation_timer,
                 );
                 rect_vao.bind();
                 state.display_enemies(&rect_vao, &sprite_shader);
@@ -302,6 +303,7 @@ fn main() -> Result<(), String> {
                     &cube_vao,
                     &sprite_shader,
                     &state.player_position(),
+                    animation_timer,
                 );
                 rect_vao.bind();
                 state.display_enemies(&rect_vao, &sprite_shader);
@@ -455,10 +457,7 @@ fn main() -> Result<(), String> {
         }
 
         //Update the animation timer
-        tile_animation_timer += dt;
-        if tile_animation_timer > 2.0 {
-            tile_animation_timer = 0.0;
-        }
+        animation_timer += dt;
 
         gfx::output_gl_errors();
         window.swap_buffers();

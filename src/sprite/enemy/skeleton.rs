@@ -55,7 +55,7 @@ impl Enemy {
         }
 
         if (self.sprite.position - player_pos).magnitude() < 6.0
-            && (self.sprite.position.y - player_pos.y).abs() < 2.0
+            && (self.sprite.position.y - player_pos.y).abs() < 3.0
         {
             self.state = EnemyState::Chase;
             self.sprite.velocity.x = 1.4 * self.sprite.velocity.x.signum();

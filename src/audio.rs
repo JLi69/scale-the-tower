@@ -1,5 +1,5 @@
-use std::{io::BufReader, fs::File};
-use rodio::{OutputStream, source::Buffered, Decoder, OutputStreamHandle, Source};
+use rodio::{source::Buffered, Decoder, OutputStream, OutputStreamHandle, Source};
+use std::{fs::File, io::BufReader};
 
 type Sfx = Buffered<Decoder<BufReader<File>>>;
 
@@ -25,9 +25,7 @@ fn sfx_from_file(path: &str) -> Result<Sfx, String> {
 }
 
 fn load_sounds() -> Vec<Sfx> {
-    let mut sounds = vec![];
-
-    let paths = [ 
+    let paths = [
         "assets/audio/jump.wav",
         "assets/audio/coin.wav",
         "assets/audio/powerup.wav",
@@ -37,25 +35,28 @@ fn load_sounds() -> Vec<Sfx> {
         "assets/audio/select.wav",
     ];
 
-    for path in paths {
-        match sfx_from_file(path) {
-            Ok(sfx) => sounds.push(sfx),
-            Err(msg) => eprintln!("{msg}"),
-        }
-    }
+    paths
+        .iter()
+        .map(|path| sfx_from_file(path))
+        .filter(|sfx_res| {
+            if let Err(msg) = sfx_res {
+                eprintln!("{msg}");
+                return false;
+            }
 
-    sounds
+            true
+        })
+        .map(|sfx_res| sfx_res.unwrap())
+        .collect()
 }
 
-impl SfxPlayer { 
+impl SfxPlayer {
     pub fn init() -> Self {
         match OutputStream::try_default() {
-            Ok((stream, stream_handle)) => {
-                Self { 
-                    sources: load_sounds(),
-                    stream: Some((stream, stream_handle)),
-                }
-            }
+            Ok((stream, stream_handle)) => Self {
+                sources: load_sounds(),
+                stream: Some((stream, stream_handle)),
+            },
             Err(msg) => {
                 eprintln!("{msg}");
                 Self {
@@ -72,7 +73,7 @@ impl SfxPlayer {
                 let res = stream_handle.play_raw(self.sources[index].clone().convert_samples());
                 if let Err(msg) = res {
                     eprintln!("{msg}");
-                } 
+                }
             }
         }
     }

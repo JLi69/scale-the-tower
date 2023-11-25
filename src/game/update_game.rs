@@ -1,10 +1,11 @@
 use super::{hiscore, player::PLAYER_CLIMB_SPEED, GameScreen, Projectile, State};
 use crate::{
+    audio::{sfx_ids, SfxPlayer},
     level::{transparent, Tile},
     sprite::{
         particle::{Particle, ParticleType},
         Sprite,
-    }, audio::{SfxPlayer, sfx_ids},
+    },
 };
 use cgmath::vec2;
 
@@ -78,7 +79,7 @@ impl State {
                 && self.player.player_health > 0
             {
                 if self.enemies[i].apply_damage(1) {
-                    self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 8); 
+                    self.add_particles(enemy_pos.x, enemy_pos.y, 0.15, 3.0, ParticleType::Blood, 8);
                     sfx_player.play(sfx_ids::ENEMY_HIT);
                 }
                 self.player.player_spr.velocity.y *= BOUNCE_SPEED;
@@ -264,7 +265,8 @@ impl State {
         }
         self.player.player_spr.update_animation_frame(dt);
         self.player.update_animation_state();
-        self.level.update_interactive_tiles(&mut self.player, sfx_player);
+        self.level
+            .update_interactive_tiles(&mut self.player, sfx_player);
         self.player.damage_cooldown -= dt;
 
         let player_pos = self.player_position();

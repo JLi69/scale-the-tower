@@ -14,3 +14,11 @@ room13.png
 room14.png
 room15.png
 room16.png
+room17.png
+room18.png
+room19.png
+room20.png
+room21.png
+room22.png
+room23.png
+room24.png

@@ -1,5 +1,5 @@
 use super::{InteractiveTile, Level};
-use crate::audio::{SfxPlayer, sfx_ids};
+use crate::audio::{sfx_ids, SfxPlayer};
 use crate::game::Player;
 use crate::sprite::Sprite;
 

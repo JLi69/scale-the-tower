@@ -1,10 +1,10 @@
 use super::BackgroundTile;
 use super::Tile;
 use super::ROOM_SIZE;
+use crate::gfx::load_image_pixels;
 use core::slice::Iter;
 use std::fs::File;
 use std::io::Read;
-use crate::gfx::load_image_pixels;
 
 /*
  * There are 4 types of room templates:
@@ -86,37 +86,34 @@ impl RoomTemplate {
         let mut x = 0;
         let mut y = ROOM_SIZE - 1;
 
-        buf.iter()
-            .for_each(|pixel| {
-                template.set_tile(x, y, pixel_to_tile(*pixel).unwrap_or(Tile::Air));
-                template.set_background_tile(
-                    x,
-                    y,
-                    pixel_to_background_tile(*pixel).unwrap_or(BackgroundTile::Wall),
-                );
+        buf.iter().for_each(|pixel| {
+            template.set_tile(x, y, pixel_to_tile(*pixel).unwrap_or(Tile::Air));
+            template.set_background_tile(
+                x,
+                y,
+                pixel_to_background_tile(*pixel).unwrap_or(BackgroundTile::Wall),
+            );
 
-                if template.get_background_tile(x, y + 1) == BackgroundTile::BannerTop {
-                    template.set_background_tile(x, y, BackgroundTile::BannerBottom);
-                } else if template.get_background_tile(x, y + 1)
-                    == BackgroundTile::BigWindowTop
-                {
-                    template.set_background_tile(x, y, BackgroundTile::BigWindowBottom);
-                }
+            if template.get_background_tile(x, y + 1) == BackgroundTile::BannerTop {
+                template.set_background_tile(x, y, BackgroundTile::BannerBottom);
+            } else if template.get_background_tile(x, y + 1) == BackgroundTile::BigWindowTop {
+                template.set_background_tile(x, y, BackgroundTile::BigWindowBottom);
+            }
 
-                if let Some(t) = pixel_to_spawn(*pixel) {
-                    template.spawns.push(Spawn {
-                        spawn_type: t,
-                        tile_x: x,
-                        tile_y: y,
-                    })
-                }
+            if let Some(t) = pixel_to_spawn(*pixel) {
+                template.spawns.push(Spawn {
+                    spawn_type: t,
+                    tile_x: x,
+                    tile_y: y,
+                })
+            }
 
-                x += 1;
-                if x >= ROOM_SIZE && y > 0 {
-                    x = 0;
-                    y -= 1;
-                }
-            });
+            x += 1;
+            if x >= ROOM_SIZE && y > 0 {
+                x = 0;
+                y -= 1;
+            }
+        });
 
         Ok(template)
     }

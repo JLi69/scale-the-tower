@@ -11,7 +11,7 @@ Space: Attack
 1/2: Sword/Bow
 
 CREDITS
-Art/programming - NotJL
+Art/programming - Nullptr Error
 sound effects generated using sfxr
 Source code:
 https://github.com/JLi69/scale-the-tower

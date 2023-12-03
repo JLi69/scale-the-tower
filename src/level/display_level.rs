@@ -1,7 +1,7 @@
 use super::{transparent, BackgroundTile, InteractiveTile, Level, Tile, CHUNK_SIZE};
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
-use cgmath::{Matrix4, Vector2, Rad};
+use cgmath::{Matrix4, Rad, Vector2};
 use std::mem::size_of;
 use std::os::raw::c_void;
 

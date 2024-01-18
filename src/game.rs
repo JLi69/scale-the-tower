@@ -20,7 +20,7 @@ pub const DEFAULT_PLAYER_HEALTH: i32 = 4;
 pub const DAMAGE_COOLDOWN: f32 = 0.3;
 pub const ATTACK_COOLDOWN: f32 = 0.5;
 pub const ATTACK_TIMER: f32 = 0.2;
-pub const PLAYER_WIDTH: f32 = 0.75;
+pub const PLAYER_WIDTH: f32 = 0.625;
 pub const PLAYER_HEIGHT: f32 = 0.8125;
 
 #[derive(Eq, PartialEq, Copy, Clone)]

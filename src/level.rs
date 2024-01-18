@@ -1,3 +1,5 @@
+use cgmath::{Vector2, vec2};
+
 pub mod display_level;
 pub mod generate_level;
 pub mod room_template;
@@ -75,10 +77,12 @@ pub struct Level {
     level_chunk_texture_coordinates: Vec<u32>,
     level_chunk_animation: Vec<u32>,
     level_chunk_vertex_count: Vec<u32>,
+    level_chunk_position: Vec<Vector2<f32>>,
 }
 
 impl Level {
     pub fn new(w: u32, h: u32) -> Self {
+        let sz = ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1);
         //Creates a level filled with bricks that can
         //be used to generate a more complex level
         Self {
@@ -88,30 +92,12 @@ impl Level {
             width: w,
             height: h,
 
-            level_chunks: vec![
-                0;
-                ((w / CHUNK_SIZE) as usize + 1) * ((h / CHUNK_SIZE) as usize + 1)
-            ],
-            level_chunk_vertex_buffers: vec![
-                0;
-                ((w / CHUNK_SIZE) as usize + 1)
-                    * ((h / CHUNK_SIZE) as usize + 1)
-            ],
-            level_chunk_texture_coordinates: vec![
-                0;
-                ((w / CHUNK_SIZE) as usize + 1)
-                    * ((h / CHUNK_SIZE) as usize + 1)
-            ],
-            level_chunk_animation: vec![
-                0;
-                ((w / CHUNK_SIZE) as usize + 1)
-                    * ((h / CHUNK_SIZE) as usize + 1)
-            ],
-            level_chunk_vertex_count: vec![
-                0;
-                ((w / CHUNK_SIZE) as usize + 1)
-                    * ((h / CHUNK_SIZE) as usize + 1)
-            ],
+            level_chunks: vec![0; sz],
+            level_chunk_vertex_buffers: vec![0; sz],
+            level_chunk_texture_coordinates: vec![0; sz],
+            level_chunk_animation: vec![0; sz],
+            level_chunk_vertex_count: vec![0; sz],
+            level_chunk_position: vec![vec2(0.0, 0.0); sz]
         }
     }
 

@@ -228,7 +228,7 @@ fn main() -> Result<(), String> {
                 //Display level
                 tile_textures.bind();
                 level_shader.use_program();
-                state.level.display();
+                state.level.display(&state.player_position());
                 //Display player sprite
                 rect_vao.bind();
                 sprite_shader.use_program();
@@ -252,7 +252,7 @@ fn main() -> Result<(), String> {
                 //Display level
                 tile_textures.bind();
                 level_shader.use_program();
-                state.level.display();
+                state.level.display(&state.player_position());
                 //Display tiles that the player can interact with
                 sprite_shader.use_program();
                 sprite_textures.bind();

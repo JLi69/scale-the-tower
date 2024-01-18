@@ -1,7 +1,7 @@
 use super::{transparent, BackgroundTile, InteractiveTile, Level, Tile, CHUNK_SIZE};
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
-use cgmath::{Matrix4, Rad, Vector2};
+use cgmath::{Matrix4, Rad, Vector2, vec2};
 use std::mem::size_of;
 use std::os::raw::c_void;
 
@@ -301,24 +301,25 @@ impl Level {
     }
 
     pub fn build_chunk(&mut self, chunk_x: u32, chunk_y: u32) {
+        let chunk_pos = vec2(
+            chunk_x as f32 * CHUNK_SIZE as f32,
+            chunk_y as f32 * CHUNK_SIZE as f32
+        );
+        let index = (chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize;
+        self.level_chunk_position[index] = chunk_pos;
         //Vertices is a vector of f32 values that represent the vertices of
         //the chunk of tiles
         let vertices = self.get_chunk_vertices(chunk_x, chunk_y);
         //Number of vertices is equal to vertices.len() / VERTEX_LEN,
         //this is stored so that we know how many vertices to draw onto the
         //screen when we need to draw the chunk
-        self.level_chunk_vertex_count
-            [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize] =
-            (vertices.len() / VERTEX_LEN) as u32;
+        self.level_chunk_vertex_count[index] = (vertices.len() / VERTEX_LEN) as u32;
         unsafe {
-            gl::BindVertexArray(
-                self.level_chunks[(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
-            );
+            gl::BindVertexArray(self.level_chunks[index]);
 
             gl::BindBuffer(
                 gl::ARRAY_BUFFER,
-                self.level_chunk_vertex_buffers
-                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+                self.level_chunk_vertex_buffers[index],
             );
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -338,8 +339,7 @@ impl Level {
 
             gl::BindBuffer(
                 gl::ARRAY_BUFFER,
-                self.level_chunk_texture_coordinates
-                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+                self.level_chunk_texture_coordinates[index],
             );
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -359,8 +359,7 @@ impl Level {
 
             gl::BindBuffer(
                 gl::ARRAY_BUFFER,
-                self.level_chunk_texture_coordinates
-                    [(chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize],
+                self.level_chunk_texture_coordinates[index],
             );
             gl::BufferData(
                 gl::ARRAY_BUFFER,
@@ -411,8 +410,12 @@ impl Level {
     }
 
     //Display the level
-    pub fn display(&self) {
+    pub fn display(&self, player_position: &Vector2<f32>) {
         for i in 0..self.level_chunks.len() {
+            if (player_position.y - self.level_chunk_position[i].y).abs() > CHUNK_SIZE as f32 * 2.0 {
+                continue;
+            }
+
             unsafe {
                 gl::BindVertexArray(self.level_chunks[i]);
                 gl::DrawArrays(gl::TRIANGLES, 0, self.level_chunk_vertex_count[i] as i32);

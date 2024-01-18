@@ -1,6 +1,7 @@
 use crate::{
+    audio::{sfx_ids, SfxPlayer},
     sprite::{enemy::Enemy, particle::Particle},
-    Level, Sprite, audio::{SfxPlayer, sfx_ids},
+    Level, Sprite,
 };
 use cgmath::{Deg, Matrix4, Vector2};
 
@@ -8,9 +9,9 @@ use input_config::InputConfig;
 
 pub mod display;
 pub mod hiscore;
+pub mod input_config;
 pub mod player;
 pub mod update_game;
-pub mod input_config;
 
 //Constants
 //Force of gravity on all sprites
@@ -19,6 +20,8 @@ pub const DEFAULT_PLAYER_HEALTH: i32 = 4;
 pub const DAMAGE_COOLDOWN: f32 = 0.3;
 pub const ATTACK_COOLDOWN: f32 = 0.5;
 pub const ATTACK_TIMER: f32 = 0.2;
+pub const PLAYER_WIDTH: f32 = 0.75;
+pub const PLAYER_HEIGHT: f32 = 0.8125;
 
 #[derive(Eq, PartialEq, Copy, Clone)]
 pub enum GameScreen {
@@ -54,7 +57,12 @@ pub struct Player {
 impl Player {
     pub fn start_state() -> Self {
         Self {
-            player_spr: Sprite::new(1.0, 1.0, 0.8, 1.0),
+            player_spr: Sprite::new(
+                1.0,
+                1.0 - (1.0 - PLAYER_HEIGHT) / 2.0,
+                PLAYER_WIDTH,
+                PLAYER_HEIGHT,
+            ),
             score: 0,
             player_health: DEFAULT_PLAYER_HEALTH,
             max_player_health: DEFAULT_PLAYER_HEALTH,
@@ -176,7 +184,7 @@ impl State {
             enemies: vec![],
             projectiles: vec![],
             particles: vec![],
-            input: InputConfig::new("input_settings")
+            input: InputConfig::new("input_settings"),
         }
     }
 
@@ -212,7 +220,7 @@ impl State {
         if !self.player.falling() && !self.player.climbing() {
             self.set_player_velocity_y(player::PLAYER_JUMP_SPEED);
             sfx_player.play(sfx_ids::JUMP);
-        } else if self.player.climbing() { 
+        } else if self.player.climbing() {
             self.set_player_velocity_y(player::PLAYER_CLIMB_SPEED);
         }
     }
@@ -223,11 +231,7 @@ impl State {
         }
     }
 
-    pub fn handle_key_press(
-        &mut self,
-        scancode: input_config::KeyId, 
-        sfx_player: &SfxPlayer
-    ) {
+    pub fn handle_key_press(&mut self, scancode: input_config::KeyId, sfx_player: &SfxPlayer) {
         let action = self.input.get_action(scancode).unwrap_or("".to_string());
         if action == "Escape" {
             match self.game_screen {

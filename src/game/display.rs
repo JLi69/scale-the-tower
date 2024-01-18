@@ -1,4 +1,4 @@
-use super::{Player, Projectile, State, Weapon, ATTACK_TIMER};
+use super::{Player, Projectile, State, Weapon, ATTACK_TIMER, PLAYER_HEIGHT};
 use crate::{
     gfx::VertexArrayObject, level::display_level::SPRITE_RENDER_DISTANCE, shader::ShaderProgram, ui,
 };
@@ -10,7 +10,7 @@ impl Player {
         sprite_shader.uniform_bool("uFlipped", self.player_spr.flipped);
         let transform_matrix = Matrix4::from_translation(cgmath::vec3(
             self.player_spr.position.x,
-            self.player_spr.position.y,
+            self.player_spr.position.y + (1.0 - PLAYER_HEIGHT) / 2.0,
             0.0,
         )) * Matrix4::from_scale(0.5);
         sprite_shader.uniform_matrix4f("uTransform", &transform_matrix);

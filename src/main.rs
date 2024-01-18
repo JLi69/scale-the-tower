@@ -16,7 +16,6 @@ use crate::audio::sfx_ids;
 use audio::SfxPlayer;
 use cgmath::Matrix4;
 use game::{hiscore, GameScreen, State};
-use game::{Projectile, Weapon};
 use glfw::Context;
 use level::room_template;
 use level::Level;
@@ -52,51 +51,11 @@ fn handle_key_input(
     state: &mut State,
     sfx_player: &SfxPlayer,
 ) {
+    let key_id = key as i32;
     if action == glfw::Action::Press {
-        if key == glfw::Key::Escape {
-            match state.game_screen {
-                GameScreen::Game => state.game_screen = GameScreen::Paused,
-                GameScreen::Paused => state.game_screen = GameScreen::Game,
-                _ => {}
-            }
-        }
-
-        if key == glfw::Key::Up && !state.player.falling() && !state.player.climbing() {
-            state.set_player_velocity_y(game::player::PLAYER_JUMP_SPEED);
-            sfx_player.play(sfx_ids::JUMP);
-        } else if key == glfw::Key::Up && state.player.climbing() {
-            state.set_player_velocity_y(game::player::PLAYER_CLIMB_SPEED);
-        } else if key == glfw::Key::Down && state.player.climbing() {
-            state.set_player_velocity_y(-game::player::PLAYER_CLIMB_SPEED);
-        } else if key == glfw::Key::Left {
-            state.set_player_velocity_x(-game::player::PLAYER_SPEED);
-        } else if key == glfw::Key::Right {
-            state.set_player_velocity_x(game::player::PLAYER_SPEED);
-        } else if key == glfw::Key::Space {
-            match state.player.weapon {
-                Weapon::Sword => state.player.attack(),
-                Weapon::Bow => {
-                    let spr = state.player.shoot();
-                    if let Some(arrow) = spr {
-                        state.projectiles.push((Projectile::Arrow, arrow));
-                    }
-                }
-            }
-        }
-
-        if key == glfw::Key::Num1 {
-            state.player.weapon = Weapon::Sword;
-        } else if key == glfw::Key::Num2 {
-            state.player.weapon = Weapon::Bow;
-        }
+        state.handle_key_press(key_id, sfx_player);
     } else if action == glfw::Action::Release {
-        if (key == glfw::Key::Up || key == glfw::Key::Down) && state.player.climbing() {
-            state.set_player_velocity_y(0.0);
-        } else if key == glfw::Key::Left && state.player_velocity().x < 0.0
-            || key == glfw::Key::Right && state.player_velocity().x > 0.0
-        {
-            state.set_player_velocity_x(0.0);
-        }
+        state.handle_key_release(key_id);
     }
 }
 

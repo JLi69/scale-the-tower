@@ -5,8 +5,8 @@ to succeed at scaling and plundering
 the tower...
 
 CONTROLS
-Left/Right Arrows: Move around
-Up Arrow: Jump
+Left/Right Arrows or A/D: Move around
+Up Arrow or W: Jump
 Space: Attack
 1/2: Sword/Bow
 

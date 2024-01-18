@@ -79,6 +79,10 @@ pub fn load_highscores(path: &str) -> Vec<u32> {
 
 //Writes highscores to a file
 pub fn write_highscores(path: &str, highscores: &Vec<u32>) {
+    if highscores.is_empty() {
+        return;
+    }
+
     let mut highscore_file_contents = String::new();
 
     for score in highscores {

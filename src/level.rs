@@ -16,6 +16,7 @@ pub const ROOM_SIZE: u32 = 16;
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[repr(u8)]
+#[allow(clippy::enum_variant_names)]
 pub enum Tile {
     Air,
     Brick,

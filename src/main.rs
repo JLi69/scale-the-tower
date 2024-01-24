@@ -119,6 +119,7 @@ fn load_icon(window: &mut glfw::Window) {
 fn main() -> Result<(), String> {
     //Attempt to initialize glfw
     let mut glfw = glfw::init_no_callbacks().map_err(|e| e.to_string())?;
+    glfw.window_hint(glfw::WindowHint::ContextVersion(3, 3));
     //Attempt to create window
     let (mut window, events) =
         match glfw.create_window(800, 600, "Scale the Tower", glfw::WindowMode::Windowed) {

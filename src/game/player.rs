@@ -1,4 +1,4 @@
-use super::{Player, GRAVITY};
+use super::{Player, GRAVITY, PLAYER_HEIGHT};
 use crate::level::{transparent, Level, Tile, ROOM_SIZE};
 use crate::sprite::Sprite;
 use cgmath::vec2;
@@ -130,6 +130,11 @@ impl Player {
             .position
             .x
             .clamp(0.0, ROOM_SIZE as f32 + 1.0);
+        
+        //Clamp the player's y position to prevent them from falling through the
+        //floor of the world
+        self.player_spr.position.y = 
+            self.player_spr.position.y.max(1.0 - (1.0 - PLAYER_HEIGHT) / 2.0);
 
         self.attack_timer -= dt;
         self.attack_cooldown -= dt;

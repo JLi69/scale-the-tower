@@ -104,7 +104,7 @@ pub fn write_highscores(path: &str, highscores: &Vec<u32>) {
 pub fn display_hiscores(
     rect_vao: &VertexArrayObject,
     text_shader: &ShaderProgram,
-    highscores: &Vec<u32>,
+    highscores: &[u32],
 ) {
     for (i, score) in highscores.iter().enumerate() {
         ui::display_ascii_text_centered(

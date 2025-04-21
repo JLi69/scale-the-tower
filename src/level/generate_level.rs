@@ -184,7 +184,7 @@ impl Level {
         }
     }
 
-    pub fn generate_level(template_list: &Vec<RoomTemplate>) -> (Self, Vec<Enemy>) {
+    pub fn generate_level(template_list: &[RoomTemplate]) -> (Self, Vec<Enemy>) {
         let floors = 48;
         let mut level = Self::new(18, ROOM_SIZE * floors + floors + 1);
         let mut enemies = Vec::<Enemy>::new();

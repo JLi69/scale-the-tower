@@ -28,7 +28,7 @@ fn parse_lines(lines: &[String]) -> HashMap<KeyId, Action> {
 
 impl InputConfig {
     pub fn get_action(&self, key_id: KeyId) -> Option<Action> {
-        return self.keymap.get(&key_id).cloned();
+        self.keymap.get(&key_id).cloned()
     }
 
     fn read_config(path: &str) -> Result<Self, String> {

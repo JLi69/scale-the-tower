@@ -1,4 +1,4 @@
-use cgmath::{Vector2, vec2};
+use cgmath::{vec2, Vector2};
 
 pub mod display_level;
 pub mod generate_level;
@@ -97,7 +97,7 @@ impl Level {
             level_chunk_texture_coordinates: vec![0; sz],
             level_chunk_animation: vec![0; sz],
             level_chunk_vertex_count: vec![0; sz],
-            level_chunk_position: vec![vec2(0.0, 0.0); sz]
+            level_chunk_position: vec![vec2(0.0, 0.0); sz],
         }
     }
 

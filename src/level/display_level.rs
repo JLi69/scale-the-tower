@@ -1,7 +1,7 @@
 use super::{transparent, BackgroundTile, InteractiveTile, Level, Tile, CHUNK_SIZE};
 use crate::gfx::VertexArrayObject;
 use crate::shader::ShaderProgram;
-use cgmath::{Matrix4, Rad, Vector2, vec2};
+use cgmath::{vec2, Matrix4, Rad, Vector2};
 use std::mem::size_of;
 use std::os::raw::c_void;
 
@@ -303,7 +303,7 @@ impl Level {
     pub fn build_chunk(&mut self, chunk_x: u32, chunk_y: u32) {
         let chunk_pos = vec2(
             chunk_x as f32 * CHUNK_SIZE as f32,
-            chunk_y as f32 * CHUNK_SIZE as f32
+            chunk_y as f32 * CHUNK_SIZE as f32,
         );
         let index = (chunk_x + chunk_y * (self.width / CHUNK_SIZE + 1)) as usize;
         self.level_chunk_position[index] = chunk_pos;
@@ -317,10 +317,7 @@ impl Level {
         unsafe {
             gl::BindVertexArray(self.level_chunks[index]);
 
-            gl::BindBuffer(
-                gl::ARRAY_BUFFER,
-                self.level_chunk_vertex_buffers[index],
-            );
+            gl::BindBuffer(gl::ARRAY_BUFFER, self.level_chunk_vertex_buffers[index]);
             gl::BufferData(
                 gl::ARRAY_BUFFER,
                 (vertices.len() * size_of::<f32>()) as isize,
@@ -412,7 +409,8 @@ impl Level {
     //Display the level
     pub fn display(&self, player_position: &Vector2<f32>) {
         for i in 0..self.level_chunks.len() {
-            if (player_position.y - self.level_chunk_position[i].y).abs() > CHUNK_SIZE as f32 * 2.0 {
+            if (player_position.y - self.level_chunk_position[i].y).abs() > CHUNK_SIZE as f32 * 2.0
+            {
                 continue;
             }
 

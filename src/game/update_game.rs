@@ -226,6 +226,8 @@ impl State {
     }
 
     pub fn update_game_screen(&mut self, dt: f32, sfx_player: &SfxPlayer) {
+        let mut hit = false;
+
         //Update the player
         let falling = self.player.falling();
         let velocity_y = self.player.player_spr.velocity.y;
@@ -254,14 +256,14 @@ impl State {
         {
             self.player.player_health = 0;
         }
-        //Kill player instantly when jumping onto spikes
+        //Lose 2 health when you fall on a spike
         if self
             .player
             .player_spr
             .touching_tile(Tile::Spikes, &self.level)
             && self.player.player_spr.velocity.y < -PLAYER_CLIMB_SPEED
         {
-            self.player.player_health = 0;
+            hit = self.player.apply_damage(2);
         }
         self.player.player_spr.update_animation_frame(dt);
         self.player.update_animation_state();
@@ -270,7 +272,6 @@ impl State {
         self.player.damage_cooldown -= dt;
 
         let player_pos = self.player_position();
-        let mut hit = false;
         for (projectile, sprite) in &mut self.projectiles {
             if self.player.player_spr.intersecting(sprite) {
                 hit = self.player.apply_damage(1);

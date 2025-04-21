@@ -130,11 +130,14 @@ impl Player {
             .position
             .x
             .clamp(0.0, ROOM_SIZE as f32 + 1.0);
-        
+
         //Clamp the player's y position to prevent them from falling through the
         //floor of the world
-        self.player_spr.position.y = 
-            self.player_spr.position.y.max(1.0 - (1.0 - PLAYER_HEIGHT) / 2.0);
+        self.player_spr.position.y = self
+            .player_spr
+            .position
+            .y
+            .max(1.0 - (1.0 - PLAYER_HEIGHT) / 2.0);
 
         self.attack_timer -= dt;
         self.attack_cooldown -= dt;

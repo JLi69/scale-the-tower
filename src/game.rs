@@ -280,10 +280,8 @@ impl State {
             if self.player_velocity().x < 0.0 {
                 self.set_player_velocity_x(0.0);
             }
-        } else if action == "Right" {
-            if self.player_velocity().x > 0.0 {
-                self.set_player_velocity_x(0.0);
-            }
+        } else if action == "Right" && self.player_velocity().x > 0.0 {
+            self.set_player_velocity_x(0.0);
         }
     }
 }

@@ -150,7 +150,7 @@ impl RoomTemplate {
         self.background_tiles[(y * ROOM_SIZE + x) as usize] = background_tile;
     }
 
-    pub fn get_spawns(&self) -> Iter<Spawn> {
+    pub fn get_spawns(&self) -> Iter<'_, Spawn> {
         self.spawns.iter()
     }
 }
